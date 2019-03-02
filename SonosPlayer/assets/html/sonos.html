@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="node_modules/xel/themes/material.css">
+    <script src="node_modules/xel/xel.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="./sonos.css">
+  </head>
+  <body>
+      <div class="text">
+        <x-input class="input-label" id="speech" skin="flat">
+          <x-icon name="queue-music"></x-icon>
+          <x-label class="for-all">Ce que j'ai compris</x-label>
+        </x-input>
+        <x-input class="input-label-understand" id="title" skin="flat">
+          <x-icon name="library-music"></x-icon>
+          <x-label class="for-all">Ce qu'il faut comprendre</x-label>
+        </x-input>
+        <x-checkbox class="check-genre" id="check-genre" disabled></x-checkbox>
+        <x-select skin="flat" id="genre" hidden=true class="input-label-genre label-genre">
+              <x-menu id="menu-genre">
+                <x-menuitem value="Sélectionnez un genre" id="selection"><x-label class="label-help">Sélectionnez un genre</x-label></x-menuitem>
+              <hr>
+            </x-menu>
+        </x-select>
+        <x-input class="input-label-lexic" id="lexic" skin="flat">
+          <x-icon name="surround-sound"></x-icon>
+          <x-label class="for-all">Ce que je dois dire</x-label>
+        </x-input>
+      </div>
+      <div class="img">
+        <x-button skin="flat" class="help-speech">
+          <x-icon name="help"></x-icon>
+          <x-popover modal style="--align: left;">
+            <main>
+              <x-label class="label-help">La règle que vous dictez<br>vocalement apparait ici.<br>Il doit être présent pour<br>pouvoir mémoriser le champ<br>"Ce qu'il faut comprendre"<br>çi-dessous.</x-label>
+            </main>
+          </x-popover>
+        </x-button>
+
+        <x-button skin="flat" class="help-title">
+          <x-icon name="help"></x-icon>
+          <x-popover modal style="--align: left;">
+            <main>
+              <x-label class="label-help">Si la règle çi-dessus n'est pas<br>correcte, entrez dans ce champ la<br>la bonne syntaxe puis cliquez sur<br><b>"enregistrer"</b> pour la mémoriser.<br>Vous pouvez aussi choisir d'entrer<br>un nom d'artiste, un album, un titre<br><b>avant de lancer</b> les commandes<br><b><i>"mets un peu de musique"</b></i> ou<br><b><i>"spotify"</b></i> pour qu'elles l'utilisent<br>directement sans la dire.<br>Cliquez sur la case à cocher pour<br>lister les <b>genres</b> accessibles<br>par la commande <b><i>"spotify"</b></i><br>et une demande par <b>"genre"</b><br>(spotify uniquement).</x-label>
+            </main>
+          </x-popover>
+        </x-button>
+
+        <x-button skin="flat" class="help-title">
+          <x-icon name="help"></x-icon>
+          <x-popover modal style="--align: left;">
+            <main>
+              <x-label class="label-help">Entrez une prononciation à la<br>"Française" qu'Avatar devrait<br>prononcer pour ce titre, cet artiste,<br>ce genre puis cliquez sur<br><b>"enregistrer"</b> pour la mémoriser<br>(Le champ "Ce qu'il faut comprendre"<br>au-dessus doit être renseignés).</x-label>
+            </main>
+          </x-popover>
+        </x-button>
+
+      </div>
+
+      <x-button id="delete" skin="flat">
+        <x-box>
+          <x-icon name="delete"></x-icon>
+          <x-label>Effacer</x-label>
+        </x-box>
+      </x-button>
+
+
+    <x-notification id="notification" timeout="1500"></x-notification>
+    <div class="sonos-actions">
+      <x-button id="save" skin="flat">
+        <x-box>
+          <x-icon name="save"></x-icon>
+          <x-label>Enregistrer</x-label>
+        </x-box>
+      </x-button>
+      <x-button id="exit" skin="flat">
+        <x-box>
+          <x-icon name="camera"></x-icon>
+          <x-label>Quitter</x-label>
+        </x-box>
+      </x-button>
+    </div>
+    <script>
+        require('./sonos.js');
+    </script>
+  </body>
+</html>

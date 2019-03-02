@@ -1,0 +1,125 @@
+
+body {
+  width : 100%;
+  height: 100%;
+  background: #252525;
+  color: white;
+  overflow: hidden;
+}
+
+
+.input-label {
+  margin-top: 20px;
+  margin-left: 40px;
+  color: #A7A7A7;
+}
+
+.check-genre {
+  position: fixed;
+  margin-top: 30px;
+  margin-left: 210px;
+}
+
+
+.input-label-understand {
+  position: fixed;
+  top: 45px;
+  left: 40px;
+  color: #A7A7A7;
+}
+
+.input-label-genre {
+  position: fixed;
+  width: 160px;
+  top: 65px;
+  left: 40px;
+  color: #A7A7A7;
+  z-index: 2000;
+}
+
+
+.input-label-lexic {
+  position: fixed;
+  top: 125px;
+  left: 40px;
+  color: #A7A7A7;
+}
+
+.help-speech {
+  margin-top: 0px;
+  margin-left: -5px;
+  padding-top: 20px;
+  color: #A7A7A7;
+  cursor: pointer;
+  z-index: 2000;
+}
+
+.help-title {
+  margin-top: 0px;
+  margin-left: -5px;
+  padding-top: 30px;
+  color: #A7A7A7;
+  cursor: pointer;
+  z-index: 2000;
+}
+
+.for-all {
+  color: #A7A7A7;
+}
+
+#notification {
+  text-align: center;
+}
+
+#delete {
+  margin-top: 10px;
+  margin-left: 70px;
+  cursor: pointer;
+}
+
+.label-genre {
+  font: 12px helvetica neue, helvetica, arial, sans-serif;
+}
+
+.label-help {
+  font: 11px helvetica neue, helvetica, arial, sans-serif;
+}
+
+div.text {
+  float:left;
+  margin-top: 0px;
+  width: calc(100% - 45px);
+  height: 160px;
+}
+
+div.img {
+  width: 45px;
+  margin-top: 0px;
+  margin-left: calc(100% - 45px);
+  height: 160px;
+}
+
+.sonos-actions {
+  margin-top: 5px;
+  width: 100%;
+  height: 25px;
+  display: block;
+}
+
+#exit {
+  display: inline-block;
+  cursor: pointer;
+}
+#exit x-label {
+  cursor: pointer;
+}
+
+
+#save {
+  margin-left: 5px;
+  display: inline-block;
+  cursor: pointer;
+}
+#save x-label {
+  cursor: pointer;
+}
