@@ -1329,7 +1329,7 @@ function spotifySearchArtist(data, client, player) {
             Avatar.Speech.end(data.client);
     } else {
       let tts = (!artist)
-      ? "Je suis désolé, cet artiste n'existe pas"
+      ? "Je suis désolé. Cet artiste n'existe pas"
       : "Je suis désolé, je n'ai rien trouvé pour l'artiste "+artist;
 
       Avatar.speak(tts, data.client, function(){
@@ -1372,10 +1372,10 @@ function askSpotifySearchArtist (data, client, player) {
     if (sonosWindow) {
       let artist = ipcRenderer.sendSync('SonosUnderstand');
       if (artist) {
-        let artist = returnArtist(artist);
+        artist = returnArtist(artist);
         SpotifySearchAPI.searchArtist(artist)
         .then(names => {
-            resolve({artist: answer, names: names});
+            resolve({artist: artist, names: names});
         })
         .catch(err => {
             resolve(0);
@@ -3123,7 +3123,6 @@ function searchMusic (data, client, player, answered) {
                 || (items[0].name && items[0].name.toLowerCase() != answered.toLowerCase()))) {
                 answered = ipcRenderer.sendSync('SonosUnderstand', items[0].title || items[0].name);
             }
-
             answered = SonosPlayerAPI.getLexic(answered);
             if (sonosWindow)
                 answered = ipcRenderer.sendSync('SonosSay', answered);

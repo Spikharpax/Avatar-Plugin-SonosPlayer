@@ -78,8 +78,8 @@ SonosAPI.prototype.getLexic = function (sentence) {
       let even = _.find(this.lexic[i], (num) => {
           if (sentence.toLowerCase().indexOf(num) != -1) {
             let replaceSentence = sentence.substring(0, sentence.toLowerCase().indexOf(num) - 1);
-            let replaceSentence1 = sentence.substring(num.length);
-            sentence = replaceSentence+i+replaceSentence1;
+            let replaceSentence1 = sentence.substring(sentence.toLowerCase().indexOf(num) + num.length);
+            sentence = replaceSentence+' '+i+' '+replaceSentence1;
           }
           return sentence.toLowerCase() == num.toLowerCase();
       });

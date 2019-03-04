@@ -35,6 +35,13 @@
 
 
 ***
+## ★ Historique
+* Version 1.1 (04-03-2019): 
+	* Correction dans la recherche par Artiste (Spotify)
+	* Correction dans la recherche du lexic
+* Version 1.0 (02-03-2019): Released
+
+***
 ## ★ License
 Logiciel libre sous [licence MIT](https://github.com/Spikharpax/A.V.A.T.A.R/blob/master/LICENSE)
 
