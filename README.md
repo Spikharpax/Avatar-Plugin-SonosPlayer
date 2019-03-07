@@ -15,7 +15,7 @@
 	* Client mobile Android pouvant transférer ses dialogues vers l'enceinte Sonos de la pièce courante
 * Gestion du 5:1 (fibre optique et PlayBar)
 * Entièrement multi-rooms, incluant les clients mappés
-* Coupure et remise automatique du son lors un dialogue avec gestion du mode _loop_
+* Coupure et remise automatique du son lors d'un dialogue avec gestion du mode _loop_ inclus
 	* Mode _loop_: Permet d'enchaîner les commandes vocales sans répéter le mot-clé déclencheur
 * Gestion de vos bibilothèques musicales Sonos
 	* Accès direct ou recherche puis sélection par dialogue
@@ -33,7 +33,8 @@
 		* Listes de lecture
 	* Recherche Spotify globale par titre, titre et artiste, genre, artiste
 	* Commande vocale d'ajout de l'album en cours dans vos albums Spotify
-* Accès direct ou recherche de radios
+* Gestion de vos radios
+	Accès direct ou recherche puis sélection par dialogue
 * Commandes vocales:
 	* Informations sur l'écoute en cours
 	* Démarrer/stopper la musique
