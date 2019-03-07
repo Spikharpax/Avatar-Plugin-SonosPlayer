@@ -191,11 +191,11 @@
 <p class="rvps2"><span class="rvts6"><br/></span></p>
 <div class="rvps2"><table width="100%" border="1" cellpadding="1" cellspacing="2" style="border-color: #000000; border-style: solid; border-spacing: 2px;">
 <tr valign="top">
-<td width="184" style="border-color: #000000; border-style: solid; padding: 1px;"><p class="rvps3"><span class="rvts21">Nom de l'action</span></p>
+<td width="184" style="border-color: #000000; border-style: solid; padding: 1px;"><p class="rvps3"><span class="rvts20">Nom de l'action</span></p>
 </td>
-<td width="140" style="border-color: #000000; border-style: solid; padding: 1px;"><p class="rvps3"><span class="rvts21">Paramètre</span></p>
+<td width="140" style="border-color: #000000; border-style: solid; padding: 1px;"><p class="rvps3"><span class="rvts20">Paramètre</span></p>
 </td>
-<td width="551" style="border-color: #000000; border-style: solid; padding: 1px;"><p class="rvps3"><span class="rvts21">Valeur de paramètre</span></p>
+<td width="551" style="border-color: #000000; border-style: solid; padding: 1px;"><p class="rvps3"><span class="rvts20">Valeur de paramètre</span></p>
 </td>
 </tr>
 <tr valign="top">
@@ -211,10 +211,10 @@
 <tr valign="top">
 <td width="140" style="border-color: #000000; border-style: solid; padding: 1px;"><p class="rvps3"><span class="rvts6">searchTerm</span></p>
 </td>
-<td width="551" style="border-color: #000000; border-style: solid; padding: 1px;"><p class="rvps2"><span class="rvts6">En association avec </span><span class="rvts20">searchType</span><span class="rvts6"> (voir ci-dessus), soit dans l'ordre:</span></p>
+<td width="551" style="border-color: #000000; border-style: solid; padding: 1px;"><p class="rvps2"><span class="rvts6">En association avec </span><span class="rvts19">searchType</span><span class="rvts6"> (voir ci-dessus), soit dans l'ordre:</span></p>
 <p class="rvps2"><span class="rvts6">Un nom de radio, d'artiste, un genre, un compositeur, une piste, une playliste</span></p>
 <p class="rvps2"><span class="rvts6">ou</span></p>
-<p class="rvps2"><span class="rvts21">null</span><span class="rvts6"> pour le type si vous ne voulez pas préciser de terme de recherche.</span></p>
+<p class="rvps2"><span class="rvts20">null</span><span class="rvts6"> pour le type si vous ne voulez pas préciser de terme de recherche.</span></p>
 <p class="rvps2"><span class="rvts6"><br/></span></p>
 <p class="rvps2"><span class="rvts6">Dans tous les cas, A.V.A.T.A.R prendra au hasard un résultat parmi la liste de résultat pour le jouer.</span></p>
 </td>
@@ -231,62 +231,62 @@
 </div>
 <p class="rvps2"><span class="rvts6"><br/></span></p>
 <p class="rvps2"><span class="rvts6"><br/></span></p>
-<p class="rvps2"><span class="rvts21">Note:</span><span class="rvts6"> </span></p>
+<p class="rvps2"><span class="rvts20">Note:</span><span class="rvts6"> </span></p>
 <p class="rvps2"><span class="rvts6">Le paramètre "_id" dans les exemples ci-dessous doit être unique. </span></p>
 <p class="rvps2"><span class="rvts6">Si vous avez des "_id" identiques, modifiez en un avec une lettre ou un chiffre différent.</span></p>
 <p class="rvps2"><span class="rvts6"><br/></span></p>
-<h3 class="rvps8"><span class="rvts0"><span class="rvts24">Exemple 1:</span></span></h3>
-<p class="rvps2"><span class="rvts6">Dans cet exemple, je veux un scénario qui est joué dans la pièce Sonos "</span><span class="rvts20">Chambre</span><span class="rvts6">" à 7:45 les jours de la semaine et qui cherche un artiste "Pat Benatar". </span></p>
+<h3 class="rvps8"><span class="rvts0"><span class="rvts23">Exemple 1:</span></span></h3>
+<p class="rvps2"><span class="rvts6">Dans cet exemple, je veux un scénario qui est joué dans la pièce Sonos "</span><span class="rvts19">Chambre</span><span class="rvts6">" à 7:45 les jours de la semaine et qui cherche un artiste "Pat Benatar". </span></p>
 <p class="rvps2"><span class="rvts6">Mon programme "Réveil" contient une action du nom "musique de réveil".</span></p>
-<p class="rvps2"><span class="rvts6">(Analysez les paramètres </span><span class="rvts20">searchType</span><span class="rvts6"> et </span><span class="rvts20">searchTerm</span><span class="rvts6"> dans le scénario ci-dessous)</span></p>
+<p class="rvps2"><span class="rvts6">(Analysez les paramètres </span><span class="rvts19">searchType</span><span class="rvts6"> et </span><span class="rvts19">searchTerm</span><span class="rvts6"> dans le scénario ci-dessous)</span></p>
 <p class="rvps2"><span class="rvts6"><br/></span></p>
-<p class="rvps15"><span class="rvts20">{"Program":"Réveil","Client":"Chambre","Plugin":"SonosPlayer","Name":"musique de reveil","Order":"1","Tempo":"1000","Speech":null,"Exec":"true","Keys":"command=wakeup_random_music~searchType=artists~searchTerm=Pat Benatar~client=Chambre","Hour":"07:45","Days":"1111100","_id":"TsE35Fv1ZcBwMwcI"}</span></p>
+<p class="rvps15"><span class="rvts19">{"Program":"Réveil","Client":"Chambre","Plugin":"SonosPlayer","Name":"musique de reveil","Order":"1","Tempo":"1000","Speech":null,"Exec":"true","Keys":"command=wakeup_random_music~searchType=artists~searchTerm=Pat Benatar~client=Chambre","Hour":"07:45","Days":"1111100","_id":"TsE35Fv1ZcBwMwcI"}</span></p>
 <p class="rvps15"><span class="rvts6"><br/></span></p>
-<p class="rvps15"><span class="rvts6">Cette ligne est à ajouter dans le fichier </span><span class="rvts20">&lt;A.V.A.T.A.R&gt;\resources\core\plugins\scenariz\db\Scenariz.db</span></p>
-<p class="rvps15"><span class="rvts6">Vous pouvez ensuite le modifier vocalement par la commande "</span><span class="rvts20">Gestion des programmes</span><span class="rvts6">" du plugin scenariz (Pour plus d'information, voir le plugin scenariz)</span></p>
+<p class="rvps15"><span class="rvts6">Cette ligne est à ajouter dans le fichier </span><span class="rvts19">&lt;A.V.A.T.A.R&gt;\resources\core\plugins\scenariz\db\Scenariz.db</span></p>
+<p class="rvps15"><span class="rvts6">Vous pouvez ensuite le modifier vocalement par la commande "</span><span class="rvts19">Gestion des programmes</span><span class="rvts6">" du plugin scenariz (Pour plus d'information, voir le plugin scenariz)</span></p>
 <p class="rvps15"><span class="rvts6"><br/></span></p>
 <p class="rvps15"><span class="rvts6"><br/></span></p>
-<h3 class="rvps8"><span class="rvts0"><span class="rvts24">Exemple 2:</span></span></h3>
-<p class="rvps2"><span class="rvts6">Dans cet exemple, je veux un scénario qui est joué dans la pièce Sonos "</span><span class="rvts20">Chambre</span><span class="rvts6">" à 7:45 les jours de la semaine et qui cherche un artiste "Pat Benatar". </span></p>
+<h3 class="rvps8"><span class="rvts0"><span class="rvts23">Exemple 2:</span></span></h3>
+<p class="rvps2"><span class="rvts6">Dans cet exemple, je veux un scénario qui est joué dans la pièce Sonos "</span><span class="rvts19">Chambre</span><span class="rvts6">" à 7:45 les jours de la semaine et qui cherche un artiste "Pat Benatar". </span></p>
 <p class="rvps2"><span class="rvts6">Mon programme "Réveil" contient une action du nom "musique de réveil".</span></p>
 <p class="rvps2"><span class="rvts6">En plus, je veux régler le volume à 10 avant de joue la musique.</span></p>
-<p class="rvps2"><span class="rvts6">(Analysez les paramètres </span><span class="rvts20">searchType</span><span class="rvts6"> et </span><span class="rvts20">searchTerm</span><span class="rvts6"> dans le scénario ci-dessous)</span></p>
+<p class="rvps2"><span class="rvts6">(Analysez les paramètres </span><span class="rvts19">searchType</span><span class="rvts6"> et </span><span class="rvts19">searchTerm</span><span class="rvts6"> dans le scénario ci-dessous)</span></p>
 <p class="rvps15"><span class="rvts6"><br/></span></p>
-<p class="rvps2"><span class="rvts20">{"Program":"Réveil","Client":"Chambre","Plugin":"SonosPlayer","Name":"Son à 10 pour le reveil","Order":"1","Tempo":"5000","Speech":null,"Exec":"true","Keys":"command=wakeup_volume~value=10~client=Chambre","Hour":"07:45","Days":"1111100","_id":"0awFh2CSB2eIkMSh"}</span></p>
-<p class="rvps15"><span class="rvts20">{"Program":"Réveil","Client":"Chambre","Plugin":"SonosPlayer","Name":"musique de reveil","Order":"2","Tempo":"1000","Speech":null,"Exec":"true","Keys":"command=wakeup_random_music~searchType=artists~searchTerm=Pat Benatar~client=Chambre","Hour":"07:45","Days":"1111100","_id":"TsE35Fv1ZcBwMwcI"}</span></p>
+<p class="rvps2"><span class="rvts19">{"Program":"Réveil","Client":"Chambre","Plugin":"SonosPlayer","Name":"Son à 10 pour le reveil","Order":"1","Tempo":"5000","Speech":null,"Exec":"true","Keys":"command=wakeup_volume~value=10~client=Chambre","Hour":"07:45","Days":"1111100","_id":"0awFh2CSB2eIkMSh"}</span></p>
+<p class="rvps15"><span class="rvts19">{"Program":"Réveil","Client":"Chambre","Plugin":"SonosPlayer","Name":"musique de reveil","Order":"2","Tempo":"1000","Speech":null,"Exec":"true","Keys":"command=wakeup_random_music~searchType=artists~searchTerm=Pat Benatar~client=Chambre","Hour":"07:45","Days":"1111100","_id":"TsE35Fv1ZcBwMwcI"}</span></p>
 <p class="rvps15"><span class="rvts6"><br/></span></p>
-<p class="rvps15"><span class="rvts6">Ces 2 lignes sont à ajouter dans le fichier </span><span class="rvts20">&lt;A.V.A.T.A.R&gt;\resources\core\plugins\scenariz\db\Scenariz.db</span></p>
-<p class="rvps15"><span class="rvts6">Vous pouvez ensuite le modifier vocalement par la commande "</span><span class="rvts20">Gestion des programmes</span><span class="rvts6">" du plugin scenariz (Pour plus d'information, voir le plugin scenariz)</span></p>
+<p class="rvps15"><span class="rvts6">Ces 2 lignes sont à ajouter dans le fichier </span><span class="rvts19">&lt;A.V.A.T.A.R&gt;\resources\core\plugins\scenariz\db\Scenariz.db</span></p>
+<p class="rvps15"><span class="rvts6">Vous pouvez ensuite le modifier vocalement par la commande "</span><span class="rvts19">Gestion des programmes</span><span class="rvts6">" du plugin scenariz (Pour plus d'information, voir le plugin scenariz)</span></p>
 <p class="rvps15"><span class="rvts6"><br/></span></p>
 <p class="rvps2"><span class="rvts6"><br/></span></p>
-<h3 class="rvps8"><span class="rvts0"><span class="rvts24">Exemple 3:</span></span></h3>
-<p class="rvps2"><span class="rvts6">Dans cet exemple, je veux un scénario qui est joué dans la pièce Sonos "</span><span class="rvts20">Chambre</span><span class="rvts6">" à 7:45 les jours de la semaine et qui cherche la radio "rire et chansons". </span></p>
+<h3 class="rvps8"><span class="rvts0"><span class="rvts23">Exemple 3:</span></span></h3>
+<p class="rvps2"><span class="rvts6">Dans cet exemple, je veux un scénario qui est joué dans la pièce Sonos "</span><span class="rvts19">Chambre</span><span class="rvts6">" à 7:45 les jours de la semaine et qui cherche la radio "rire et chansons". </span></p>
 <p class="rvps2"><span class="rvts6">Mon programme "Réveil" contient une action du nom "musique de réveil".</span></p>
 <p class="rvps2"><span class="rvts6">En plus, je veux régler le volume à 10 avant de joue la musique.</span></p>
-<p class="rvps2"><span class="rvts6">(Analysez les paramètres </span><span class="rvts20">searchType</span><span class="rvts6"> et </span><span class="rvts20">searchTerm</span><span class="rvts6"> dans le scénario ci-dessous)</span></p>
+<p class="rvps2"><span class="rvts6">(Analysez les paramètres </span><span class="rvts19">searchType</span><span class="rvts6"> et </span><span class="rvts19">searchTerm</span><span class="rvts6"> dans le scénario ci-dessous)</span></p>
 <p class="rvps15"><span class="rvts6"><br/></span></p>
-<p class="rvps2"><span class="rvts20">{"Program":"Réveil","Client":"Chambre","Plugin":"SonosPlayer","Name":"Son à 10 pour le reveil","Order":"1","Tempo":"5000","Speech":null,"Exec":"true","Keys":"command=wakeup_volume~value=10~client=Chambre","Hour":"07:45","Days":"1111100","_id":"0awFh2CSB2eIkMSh"}</span></p>
-<p class="rvps15"><span class="rvts20">{"Program":"Réveil","Client":"Chambre","Plugin":"SonosPlayer","Name":"musique de reveil","Order":"2","Tempo":"1000","Speech":null,"Exec":"true","Keys":"command=wakeup_random_music~searchType=radio~searchTerm=rire et chansons~client=Chambre","Hour":"07:45","Days":"1111100","_id":"TsE35Fv1ZcBwMwcI"}</span></p>
+<p class="rvps2"><span class="rvts19">{"Program":"Réveil","Client":"Chambre","Plugin":"SonosPlayer","Name":"Son à 10 pour le reveil","Order":"1","Tempo":"5000","Speech":null,"Exec":"true","Keys":"command=wakeup_volume~value=10~client=Chambre","Hour":"07:45","Days":"1111100","_id":"0awFh2CSB2eIkMSh"}</span></p>
+<p class="rvps15"><span class="rvts19">{"Program":"Réveil","Client":"Chambre","Plugin":"SonosPlayer","Name":"musique de reveil","Order":"2","Tempo":"1000","Speech":null,"Exec":"true","Keys":"command=wakeup_random_music~searchType=radio~searchTerm=rire et chansons~client=Chambre","Hour":"07:45","Days":"1111100","_id":"TsE35Fv1ZcBwMwcI"}</span></p>
 <p class="rvps15"><span class="rvts6"><br/></span></p>
-<p class="rvps15"><span class="rvts6">Ces 2 lignes sont à ajouter dans le fichier </span><span class="rvts20">&lt;A.V.A.T.A.R&gt;\resources\core\plugins\scenariz\db\Scenariz.db</span></p>
-<p class="rvps15"><span class="rvts6">Vous pouvez ensuite le modifier vocalement par la commande "</span><span class="rvts20">Gestion des programmes</span><span class="rvts6">" du plugin scenariz (Pour plus d'information, voir le plugin scenariz)</span></p>
+<p class="rvps15"><span class="rvts6">Ces 2 lignes sont à ajouter dans le fichier </span><span class="rvts19">&lt;A.V.A.T.A.R&gt;\resources\core\plugins\scenariz\db\Scenariz.db</span></p>
+<p class="rvps15"><span class="rvts6">Vous pouvez ensuite le modifier vocalement par la commande "</span><span class="rvts19">Gestion des programmes</span><span class="rvts6">" du plugin scenariz (Pour plus d'information, voir le plugin scenariz)</span></p>
 <p class="rvps15"><span class="rvts6"><br/></span></p>
 <p class="rvps15"><span class="rvts6"><br/></span></p>
-<h3 class="rvps8"><span class="rvts0"><span class="rvts24">Exemple 4:</span></span></h3>
-<p class="rvps2"><span class="rvts6">Dans cet exemple, je veux un scénario qui est joué dans la pièce Sonos "</span><span class="rvts20">Chambre</span><span class="rvts6">" à 7:45 les jours de la semaine et qui cherche toutes les playlists sans critère de recherche, Avatar en prendra une au hasard. </span></p>
+<h3 class="rvps8"><span class="rvts0"><span class="rvts23">Exemple 4:</span></span></h3>
+<p class="rvps2"><span class="rvts6">Dans cet exemple, je veux un scénario qui est joué dans la pièce Sonos "</span><span class="rvts19">Chambre</span><span class="rvts6">" à 7:45 les jours de la semaine et qui cherche toutes les playlists sans critère de recherche, Avatar en prendra une au hasard. </span></p>
 <p class="rvps2"><span class="rvts6">Mon programme "Réveil" contient une action du nom "musique de réveil".</span></p>
-<p class="rvps2"><span class="rvts6">(Analysez les paramètres </span><span class="rvts20">searchType</span><span class="rvts6"> et </span><span class="rvts20">searchTerm</span><span class="rvts6"> dans le scénario ci-dessous)</span></p>
+<p class="rvps2"><span class="rvts6">(Analysez les paramètres </span><span class="rvts19">searchType</span><span class="rvts6"> et </span><span class="rvts19">searchTerm</span><span class="rvts6"> dans le scénario ci-dessous)</span></p>
 <p class="rvps15"><span class="rvts6"><br/></span></p>
-<p class="rvps15"><span class="rvts20">{"Program":"Réveil","Client":"Chambre","Plugin":"SonosPlayer","Name":"musique de reveil","Order":"1","Tempo":"1000","Speech":null,"Exec":"true","Keys":"command=wakeup_random_music~searchType=</span><span class="rvts6">playlists</span><span class="rvts20">~searchTerm=null~client=Chambre","Hour":"07:45","Days":"1111100","_id":"TsE35Fv1ZcBwMwcI"}</span></p>
+<p class="rvps15"><span class="rvts19">{"Program":"Réveil","Client":"Chambre","Plugin":"SonosPlayer","Name":"musique de reveil","Order":"1","Tempo":"1000","Speech":null,"Exec":"true","Keys":"command=wakeup_random_music~searchType=</span><span class="rvts6">playlists</span><span class="rvts19">~searchTerm=null~client=Chambre","Hour":"07:45","Days":"1111100","_id":"TsE35Fv1ZcBwMwcI"}</span></p>
 <p class="rvps15"><span class="rvts6"><br/></span></p>
-<p class="rvps15"><span class="rvts6">Cette ligne est à ajouter dans le fichier </span><span class="rvts20">&lt;A.V.A.T.A.R&gt;\resources\core\plugins\scenariz\db\Scenariz.db</span></p>
-<p class="rvps15"><span class="rvts6">Vous pouvez ensuite le modifier vocalement par la commande "</span><span class="rvts20">Gestion des programmes</span><span class="rvts6">" du plugin scenariz (Pour plus d'information, voir le plugin scenariz)</span></p>
+<p class="rvps15"><span class="rvts6">Cette ligne est à ajouter dans le fichier </span><span class="rvts19">&lt;A.V.A.T.A.R&gt;\resources\core\plugins\scenariz\db\Scenariz.db</span></p>
+<p class="rvps15"><span class="rvts6">Vous pouvez ensuite le modifier vocalement par la commande "</span><span class="rvts19">Gestion des programmes</span><span class="rvts6">" du plugin scenariz (Pour plus d'information, voir le plugin scenariz)</span></p>
 <p class="rvps15"><span class="rvts6"><br/></span></p>
 <p class="rvps15"><span class="rvts6"><br/></span></p>
 <p class="rvps15"><span class="rvts6"><br/></span></p>
-<p class="rvps15"><span class="rvts21">Vous pouvez imaginer un scénario beaucoup plus élaboré en y ajoutant la météo, une phrase, allumer des lumières, augmenter le son après 20mn, etc...</span></p>
-<p class="rvps15"><span class="rvts21">A vous de jouer !</span></p>
-<p class="rvps15"><span class="rvts21"><br/></span></p>
+<p class="rvps15"><span class="rvts20">Vous pouvez imaginer un scénario beaucoup plus élaboré en y ajoutant la météo, une phrase, allumer des lumières, augmenter le son après 20mn, etc...</span></p>
+<p class="rvps15"><span class="rvts20">A vous de jouer !</span></p>
+<p class="rvps15"><span class="rvts20"><br/></span></p>
 <p></p>
 <p class="rvps5" style="clear: both;"><span class="rvts12">Créé avec HelpNDoc Personal Edition: </span><a class="rvts13" href="https://www.helpndoc.com/fr">Générateur de documentation et EPub gratuit</a></p>
 

@@ -187,7 +187,7 @@ exports.mute = function (clientFrom, clientTo) {
     }
 
 		if (Avatar.Socket) {
-	    let serverSpeak = _.find(Config.default.serverSpeak_mapping, function(num){
+	    let serverSpeak = _.find(Config.modules.SonosPlayer.mapped_client_speak, function(num){
 	        return clientTo == num;
 	    });
 
@@ -250,21 +250,25 @@ exports.mute = function (clientFrom, clientTo) {
 exports.unmute = function (clientFrom, clientTo) {
 	//clientFrom: Le client qui a passé la règle (client réel)
 	//clientTo: Le client courant (clientFrom ou client mappé (avec Avatar.currentRoom))
-
   if (Avatar.isMobile(clientFrom) && !Avatar.Socket.isServerSpeak(clientFrom)) {
     return;
   }
 
 	if (Avatar.Socket) {
-		let serverSpeak = _.find(Config.default.serverSpeak_mapping, function(num){
+
+    if (Avatar.isMobile(clientFrom))
+        clientTo = Avatar.currentRoom ? Avatar.currentRoom : Config.default.client;
+
+		let serverSpeak = _.find(Config.modules.SonosPlayer.mapped_client_speak, function(num){
 				return clientTo == num;
 		});
 
-		if (Avatar.Socket.isServerSpeak(clientFrom) || serverSpeak) {
-      if (Avatar.isMobile(clientFrom)) {
-        clientTo = Avatar.currentRoom ? Avatar.currentRoom : Config.default.client;
-      }
-    }
+    let mapped = _.find(Config.default.mapping, function(num){
+      return clientTo == num.split(',')[0];
+    });
+
+    if (mapped && !serverSpeak)
+        clientTo = mapped.split(',')[1];
 
     let player =  _.find(devices, function(num){
         return num.id == clientTo;
@@ -393,23 +397,32 @@ function subClassSpeak () {
         if (!tts)
             return warn('Sonos speak: Paramètre tts manquant');
 
-				let serverSpeak = _.find(Config.default.serverSpeak_mapping, function(num){
+        if (Avatar.isMobile(client)) {
+          if (!Avatar.Socket.isServerSpeak(client)) {
+                return defaultSpeak(tts,client,callback);
+          } else {
+            client = Avatar.currentRoom ? Avatar.currentRoom : Config.default.client;
+          }
+        }
+
+				let serverSpeak = _.find(Config.modules.SonosPlayer.mapped_client_speak, function(num){
             return client == num;
         });
+
+        let logClient = client;
+        let mapped = _.find(Config.default.mapping, function(num){
+          return client == num.split(',')[0];
+        });
+
+        if (mapped && !serverSpeak) {
+            client = mapped.split(',')[1];
+        }
 
         if (!Avatar.Socket.isServerSpeak(client) && !serverSpeak)
             return defaultSpeak(tts,client,callback);
 
-        if (Config.interface) {
-            var mapped = _.find(Config.default.mapping, function(num){
-              return client == num.split(',')[0];
-            });
-            Avatar.Interface.logSpeak(client, 1, tts, Config.interfaceSpeak_timer, ((mapped) ? true : false));
-        }
-
-        if (Avatar.isMobile(client)) {
-            client = Avatar.currentRoom ? Avatar.currentRoom : Config.default.client;
-        }
+        if (Config.interface)
+            Avatar.Interface.logSpeak(logClient, 1, tts, Config.interfaceSpeak_timer, ((mapped) ? true : false));
 
         let client_backupPreset;
         if (backupPreset.clients && backupPreset.clients.length > 0) {
@@ -494,10 +507,10 @@ function speak(player, client, tts, end, callback) {
                 warn('Set default timeout Sonos speak:', (timeout.toString() + 's'));
             }
 
-            info('Timeout Sonos speak:', (parseInt((((timeout * Config.modules.SonosPlayer.speech.add_timeout) / 100) + timeout) * 1000).toString() + 'ms'));
+            console.log ('Timeout Sonos speak:', (parseInt((((timeout * Config.modules.SonosPlayer.speech.add_timeout) / 100) + timeout) * 1000).toString() + 'ms'));
 
             let options = {
-                uri: 'x-file-cifs://'+Config.modules.SonosPlayer.speech.ttsPartage+'/tts/speech/'+client+'/speech.wav',
+                uri: 'x-file-cifs://'+Config.modules.SonosPlayer.speech.ttsPartage+'/tts/speech/'+((client.indexOf(' ') != -1) ? client.replace(/ /g,"_") : client)+'/speech.wav',
                 onlyWhenPlaying: false, // It will query the state anyway, don't play the notification if the speaker is currently off.
                 volume: ((Config.modules.SonosPlayer.speech.volume[client]) ? Config.modules.SonosPlayer.speech.volume[client] : Config.modules.SonosPlayer.speech.default_volume)// Change the volume for the notification, and revert back afterwards.
             };
@@ -538,7 +551,6 @@ function transportClosure (client, callback) {
 		});
 
 		if (client_backupPreset.length > 0) {
-
         let player =  _.find(devices, function(num){
             return num.id == client;
         });
@@ -633,6 +645,7 @@ function removeClientFromPreset(client, callback) {
 }
 
 
+
 // Surclasse la fonction play
 function subClassPlay() {
 
@@ -654,9 +667,26 @@ function subClassPlay() {
         if (!playfile)
             return warn('Sonos Play: Paramètre file manquant');
 
-        let serverSpeak = _.find(Config.default.serverSpeak_mapping, function(num){
+        if (Avatar.isMobile(client)) {
+          if (!Avatar.Socket.isServerSpeak(client)) {
+                return defaultSpeak(tts,client,callback);
+          } else {
+            client = Avatar.currentRoom ? Avatar.currentRoom : Config.default.client;
+          }
+        }
+
+        let serverSpeak = _.find(Config.modules.SonosPlayer.mapped_client_speak, function(num){
             return client == num;
         });
+
+        let logClient = client;
+        let mapped = _.find(Config.default.mapping, function(num){
+          return client == num.split(',')[0];
+        });
+
+        if (mapped && !serverSpeak) {
+            client = mapped.split(',')[1];
+        }
 
         if (!Avatar.Socket.isServerSpeak(client) && !serverSpeak)
             return defaultplay(playfile,client,callback);
@@ -665,10 +695,6 @@ function subClassPlay() {
         if (playfile.indexOf('@@') != -1) {
           fullpathfile = playfile.split('@@')[0]+playfile.split('@@')[1];
           playfile = '//'+Config.modules.SonosPlayer.speech.ttsPartage+playfile.split('@@')[1];
-        }
-
-        if (Avatar.isMobile(client)) {
-            client = Avatar.currentRoom ? Avatar.currentRoom : Config.default.client;
         }
 
         let client_backupPreset;
@@ -768,7 +794,7 @@ function play(player, client, fullpathfile, playfile, end, callback) {
         warn('Set default timeout Sonos play:', (timeout.toString() + 's'));
       }
 
-      info('Timeout Sonos play:', (parseInt((((timeout * Config.modules.SonosPlayer.speech.add_timeout) / 100) + timeout) * 1000).toString() + 'ms'));
+      console.log ('Timeout Sonos play:', (parseInt((((timeout * Config.modules.SonosPlayer.speech.add_timeout) / 100) + timeout) * 1000).toString() + 'ms'));
 
       let options = {
           uri: 'x-file-cifs:'+playfile,
@@ -2047,7 +2073,15 @@ function previousMusic (data, client) {
     return;
   }
 
-  if (data.client == client || (Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
+  let serverSpeak = _.find(Config.modules.SonosPlayer.mapped_client_speak, function(num){
+      return client == num;
+  });
+
+  let mapped = _.find(Config.default.mapping, function(num){
+    return client == num.split(',')[0];
+  });
+
+  if ((data.client == client && !mapped) || (data.client == client && mapped && serverSpeak) || (data.client == client && Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
       getBackupPreset (data.client)
       .then (clientBackupPreset => {
         if (!clientBackupPreset) {
@@ -2144,7 +2178,15 @@ function nextMusic (data, client) {
     return;
   }
 
-  if (data.client == client || (Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
+  let serverSpeak = _.find(Config.modules.SonosPlayer.mapped_client_speak, function(num){
+      return client == num;
+  });
+
+  let mapped = _.find(Config.default.mapping, function(num){
+    return client == num.split(',')[0];
+  });
+
+  if ((data.client == client && !mapped) || (data.client == client && mapped && serverSpeak) || (data.client == client && Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
       getBackupPreset (data.client).then (clientBackupPreset => {
         if (!clientBackupPreset) {
           Avatar.speak("je n'ai pas pu récupérer la liste de lecture.", data.client, function() {
@@ -2239,7 +2281,15 @@ function playList (data, client) {
     return;
   }
 
-  if (data.client == client || (Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
+  let serverSpeak = _.find(Config.modules.SonosPlayer.mapped_client_speak, function(num){
+      return client == num;
+  });
+
+  let mapped = _.find(Config.default.mapping, function(num){
+    return client == num.split(',')[0];
+  });
+
+  if ((data.client == client && !mapped) || (data.client == client && mapped && serverSpeak) || (data.client == client && Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
       getBackupPreset (data.client)
       .then (clientBackupPreset => {
         if (!clientBackupPreset) {
@@ -2312,7 +2362,15 @@ function isServerSpeak(client) {
 
 function tvSound (data, client) {
 
-  if (data.client == client || (Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
+  let serverSpeak = _.find(Config.modules.SonosPlayer.mapped_client_speak, function(num){
+      return client == num;
+  });
+
+  let mapped = _.find(Config.default.mapping, function(num){
+    return client == num.split(',')[0];
+  });
+
+  if ((data.client == client && !mapped) || (data.client == client && mapped && serverSpeak) || (data.client == client && Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
       getBackupPreset (data.client)
       .then (clientBackupPreset => {
         if (!clientBackupPreset) {
@@ -2398,7 +2456,15 @@ function tvSound (data, client) {
 
 function addAlbumToSpotifyLibrary (data, client, player) {
 
-  if (data.client == client || (Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
+  let serverSpeak = _.find(Config.modules.SonosPlayer.mapped_client_speak, function(num){
+      return client == num;
+  });
+
+  let mapped = _.find(Config.default.mapping, function(num){
+    return client == num.split(',')[0];
+  });
+
+  if ((data.client == client && !mapped) || (data.client == client && mapped && serverSpeak) || (data.client == client && Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
       getBackupPreset (data.client)
       .then (clientBackupPreset => {
         if (!clientBackupPreset) {
@@ -2469,7 +2535,15 @@ function addAlbumToSpotifyLibrary (data, client, player) {
 
 function currentTrack (data, client) {
 
-  if (data.client == client || (Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
+  let serverSpeak = _.find(Config.modules.SonosPlayer.mapped_client_speak, function(num){
+      return client == num;
+  });
+
+  let mapped = _.find(Config.default.mapping, function(num){
+    return client == num.split(',')[0];
+  });
+
+  if ((data.client == client && !mapped) || (data.client == client && mapped && serverSpeak) || (data.client == client && Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
       getBackupPreset (data.client)
       .then (clientBackupPreset => {
         if (!clientBackupPreset) {
@@ -2554,7 +2628,15 @@ function currentTrack (data, client) {
 
 function volumeDown (data, client, value) {
 
-  if (data.client == client || (Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
+  let serverSpeak = _.find(Config.modules.SonosPlayer.mapped_client_speak, function(num){
+      return client == num;
+  });
+
+  let mapped = _.find(Config.default.mapping, function(num){
+    return client == num.split(',')[0];
+  });
+
+  if ((data.client == client && !mapped) || (data.client == client && mapped && serverSpeak) || (data.client == client && Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
       getBackupPreset (data.client)
       .then (clientBackupPreset => {
         if (!clientBackupPreset) {
@@ -2604,8 +2686,15 @@ function volumeDown (data, client, value) {
 
 function volumeUp (data, client, value) {
 
-  if (data.client == client || (Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
+  let serverSpeak = _.find(Config.modules.SonosPlayer.mapped_client_speak, function(num){
+      return client == num;
+  });
 
+  let mapped = _.find(Config.default.mapping, function(num){
+    return client == num.split(',')[0];
+  });
+
+  if ((data.client == client && !mapped) || (data.client == client && mapped && serverSpeak) || (data.client == client && Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
       getBackupPreset (data.client)
       .then (clientBackupPreset => {
         if (!clientBackupPreset) {
@@ -2656,7 +2745,15 @@ function volumeUp (data, client, value) {
 
 function muteMusic (data, client, muted) {
 
-    if (data.client == client || (Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
+  let serverSpeak = _.find(Config.modules.SonosPlayer.mapped_client_speak, function(num){
+      return client == num;
+  });
+
+  let mapped = _.find(Config.default.mapping, function(num){
+    return client == num.split(',')[0];
+  });
+
+  if ((data.client == client && !mapped) || (data.client == client && mapped && serverSpeak) || (data.client == client && Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
         getBackupPreset (data.client)
         .then(clientBackupPreset => setBackupPresetMuted(clientBackupPreset, muted))
         .then((clientBackupPreset) => {
@@ -2711,7 +2808,7 @@ function getBackupPreset (client) {
 
   return new Promise((resolve, reject) => {
 
-    let serverSpeak = _.find(Config.default.serverSpeak_mapping, function(num){
+    let serverSpeak = _.find(Config.modules.SonosPlayer.mapped_client_speak, function(num){
         return client == num;
     });
 
@@ -2816,7 +2913,15 @@ function setBackupPresetMuted (clientBackupPreset, state) {
 
 function stopList (data, client) {
 
-    if (!data.action.wakup && (data.client == client || (Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client)))) {
+  let serverSpeak = _.find(Config.modules.SonosPlayer.mapped_client_speak, function(num){
+      return client == num;
+  });
+
+  let mapped = _.find(Config.default.mapping, function(num){
+    return client == num.split(',')[0];
+  });
+
+  if (!data.action.wakup && ((data.client == client && !mapped) || (data.client == client && mapped && serverSpeak) || (data.client == client && Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client)))) {
         getBackupPreset (data.client)
         .then(clientBackupPreset => setBackupPresetState(clientBackupPreset, false))
         .then((clientBackupPreset) => {
@@ -3179,7 +3284,15 @@ function playMusic(data, client, device, item, spotify) {
     if (item.uri.indexOf('spotify:user:spotify:playlist:') == -1 && item.uri.indexOf('spotify:playlist:') != -1)
           item.uri = 'spotify:user:'+item.uri;
 
-    if (data.client == client || (Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
+    let serverSpeak = _.find(Config.modules.SonosPlayer.mapped_client_speak, function(num){
+        return client == num;
+    });
+
+    let mapped = _.find(Config.default.mapping, function(num){
+      return client == num.split(',')[0];
+    });
+
+    if ((data.client == client && !mapped) || (data.client == client && mapped && serverSpeak) || (data.client == client && Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
         getBackupPreset (data.client)
         .then (clientBackupPreset => {
           let flagNew;
