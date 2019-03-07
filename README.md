@@ -10,11 +10,13 @@
 * Utilisation des appareils Sonos comme enceintes Wi-fi pour les clients A.V.A.T.A.R
 	* Dialogues et questions/réponses entièrement synchronisés
 	* Compatibilité avec tous les plug-ins sans modification
-	* Permet d'avoir un clients mappé avec sa propre enceinte Sonos (Client mappé: Qui utilise le micro d'un client d'une pièce contigüe) 
+	* Permet d'avoir un clients mappé avec sa propre enceinte Sonos
+		* Client mappé: Qui utilise le micro d'un client d'une pièce contigüe
 	* Client mobile Android pouvant transférer ses dialogues vers l'enceinte Sonos de la pièce courante
 * Gestion du 5:1 (fibre optique et PlayBar)
 * Entièrement multi-rooms, incluant les clients mappés
-* Coupure et remise automatique du son lors un dialogue avec gestion du mode _loop_ (Mode _loop_: Permet d'enchaîner les commandes vocales)
+* Coupure et remise automatique du son lors un dialogue avec gestion du mode _loop_
+	* Mode _loop_: Permet d'enchaîner les commandes vocales sans répéter le mot-clé déclencheur
 * Gestion de vos bibilothèques musicales Sonos
 	* Accès direct ou recherche puis sélection par dialogue
 		* Listes de lecture importées
