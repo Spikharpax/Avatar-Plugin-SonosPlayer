@@ -34,7 +34,7 @@
 	* Recherche Spotify globale par titre, titre et artiste, genre, artiste
 	* Commande vocale d'ajout de l'album en cours dans vos albums Spotify
 * Gestion de vos radios
-	Accès direct ou recherche puis sélection par dialogue
+	* Accès direct ou recherche puis sélection par dialogue
 * Commandes vocales:
 	* Informations sur l'écoute en cours
 	* Démarrer/stopper la musique
