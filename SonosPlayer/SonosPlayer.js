@@ -508,9 +508,9 @@ function speak(player, client, tts, end, callback) {
             }
 
             console.log ('Timeout Sonos speak:', (parseInt((((timeout * Config.modules.SonosPlayer.speech.add_timeout) / 100) + timeout) * 1000).toString() + 'ms'));
-
+            let ttsDir = (client.indexOf(' ') != -1) ? client.replace(/ /g,"_") : client;
             let options = {
-                uri: 'x-file-cifs://'+Config.modules.SonosPlayer.speech.ttsPartage+'/tts/speech/'+((client.indexOf(' ') != -1) ? client.replace(/ /g,"_") : client)+'/speech.wav',
+                uri: 'x-file-cifs://'+Config.modules.SonosPlayer.speech.ttsPartage+'/tts/speech/'+ttsDir+'/speech.wav',
                 onlyWhenPlaying: false, // It will query the state anyway, don't play the notification if the speaker is currently off.
                 volume: ((Config.modules.SonosPlayer.speech.volume[client]) ? Config.modules.SonosPlayer.speech.volume[client] : Config.modules.SonosPlayer.speech.default_volume)// Change the volume for the notification, and revert back afterwards.
             };
