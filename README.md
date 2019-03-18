@@ -64,6 +64,9 @@
 
 ***
 ## ★ Historique
+* Version 1.3 (18-03-2019): 
+	* Amélioration de la restitution des informations de lecture
+	* Correction de la lecture pour la fonction réveil
 * Version 1.2 (07-03-2019): 
 	* Amélioration de la gestion simultanée des possibilités de configurations de clients (réels, mappés, Android)
 	* Amélioration de la gestion simultanée des possibilités de configurations d'enceintes (PC, Pièces Sonos, Android)

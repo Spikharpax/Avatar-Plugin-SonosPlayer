@@ -443,7 +443,12 @@ function subClassSpeak () {
               player.device.getCurrentState().then((state) => {
                   let wasPlaying = (state === 'playing' || state === 'transitioning')
                   player.device.avTransportService().CurrentTrack().then(mediaInfo => {
-                      if (mediaInfo.uri.indexOf("speech") == -1 && (!client_backupPreset || client_backupPreset.length == 0)) {
+
+                      let even = _.find(Config.modules.SonosPlayer.speech.partageFolders, function(folder){
+                        return mediaInfo.uri.toLowerCase().indexOf(folder.toLowerCase()) != -1;
+                      });
+
+                      if (!even && (!client_backupPreset || client_backupPreset.length == 0)) {
                         player.device.getMuted()
                         .then(muted => {
                             player.device.setMuted(false)
@@ -467,7 +472,11 @@ function subClassSpeak () {
                       }
                   })
                   .catch(err => {
-                      if (!client_backupPreset || client_backupPreset.length == 0) {
+                      let even = _.find(Config.modules.SonosPlayer.speech.partageFolders, function(folder){
+                        return mediaInfo.uri.toLowerCase().indexOf(folder.toLowerCase()) != -1;
+                      });
+
+                      if (!even && (!client_backupPreset || client_backupPreset.length == 0)) {
                           player.device.getMuted()
                           .then(muted => {
                             player.device.setMuted(false)
@@ -712,7 +721,12 @@ function subClassPlay() {
             player.device.getCurrentState().then((state) => {
                 let wasPlaying = (state === 'playing' || state === 'transitioning')
                 player.device.avTransportService().CurrentTrack().then(mediaInfo => {
-                    if (mediaInfo.uri.indexOf("speech") == -1 && (!client_backupPreset || client_backupPreset.length == 0)) {
+
+                    let even = _.find(Config.modules.SonosPlayer.speech.partageFolders, function(folder){
+                      return mediaInfo.uri.toLowerCase().indexOf(folder.toLowerCase()) != -1;
+                    });
+
+                    if (!even && (!client_backupPreset || client_backupPreset.length == 0)) {
                       player.device.getMuted()
                       .then(muted => {
                         player.device.setMuted(false)
@@ -736,7 +750,12 @@ function subClassPlay() {
                     }
                 })
                 .catch(err => {
-                  if (!client_backupPreset || client_backupPreset.length == 0) {
+
+                  let even = _.find(Config.modules.SonosPlayer.speech.partageFolders, function(folder){
+                    return mediaInfo.uri.toLowerCase().indexOf(folder.toLowerCase()) != -1;
+                  });
+
+                  if (!even && (!client_backupPreset || client_backupPreset.length == 0)) {
                     player.device.getMuted()
                     .then(muted => {
                       player.device.setMuted(false)
@@ -768,7 +787,7 @@ function subClassPlay() {
 }
 
 
-function test (data, client) {
+/*function test (data, client) {
 
   Avatar.copyfile('plugins/timer/sound/rencontre_du_troisieme_type.wav', client, function() {
     Avatar.play('%TRANSFERT%/rencontre_du_troisieme_type.wav', client, function(){
@@ -782,8 +801,8 @@ function test (data, client) {
 
   /*Avatar.play('//HOME-PORTABLE/sound/rencontre_du_troisieme_type.wav', client, function(){
       Avatar.call('SonosPlayer', {action : {command: 'speak_closure'}, client: client});
-  })*/
-}
+  })
+}*/
 
 
 function play(player, client, fullpathfile, playfile, end, callback) {
@@ -1898,11 +1917,9 @@ function wakeUpMusic (data, client, searchType, searchTerm, callback) {
                   if (list.returned == 0)
                       return callback ? callback() : null;
 
-                  playMusic(data, client, player.device, list.items[0])
+                  playMusic(data, client, player.device, list.items[0], null, true)
                   .then (state =>  {
-                    transportClosure(client, function() {
-                        if (callback) callback();
-                    });
+                      if (callback) callback();
                   })
                   .catch (err => {
                     if (callback) callback();
@@ -1916,11 +1933,9 @@ function wakeUpMusic (data, client, searchType, searchTerm, callback) {
                   if (!list || !list.items)
                     return callback ? callback() : null;
 
-                  playMusic(data, client, player.device, list.items[Math.floor(Math.random() * list.items.length)])
+                  playMusic(data, client, player.device, list.items[Math.floor(Math.random() * list.items.length)], null, true)
                   .then (state =>  {
-                    transportClosure(client, function() {
-                        if (callback) callback();
-                    });
+                    if (callback) callback();
                   })
                   .catch (err => {
                     if (callback) callback();
@@ -3268,7 +3283,7 @@ function searchMusic (data, client, player, answered) {
 }
 
 
-function playMusic(data, client, device, item, spotify) {
+function playMusic(data, client, device, item, spotify, wakeup) {
 
   return new Promise((resolve, reject) => {
 
@@ -3292,7 +3307,7 @@ function playMusic(data, client, device, item, spotify) {
       return client == num.split(',')[0];
     });
 
-    if ((data.client == client && !mapped) || (data.client == client && mapped && serverSpeak) || (data.client == client && Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client))) {
+    if (!wakeup && ((data.client == client && !mapped) || (data.client == client && mapped && serverSpeak) || (data.client == client && Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client)))) {
         getBackupPreset (data.client)
         .then (clientBackupPreset => {
           let flagNew;
