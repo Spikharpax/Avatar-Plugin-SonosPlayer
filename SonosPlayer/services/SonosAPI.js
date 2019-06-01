@@ -1,5 +1,6 @@
 const soundex  = require('./soundex.js').soundex;
 const clj_fuzzy = require('clj-fuzzy');
+const _ = require('underscore');
 
 var SonosAPI = function SonosAPI (lexic, search_lexic) {
 

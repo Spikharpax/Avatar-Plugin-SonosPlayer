@@ -11,39 +11,37 @@
 	* Dialogues et questions/réponses entièrement synchronisés
 	* Compatibilité avec tous les plug-ins sans modification
 	* Permet d'avoir un clients mappé avec sa propre enceinte Sonos
-		* Client mappé: Qui utilise le micro d'un client d'une pièce contigüe
 	* Client mobile Android pouvant transférer ses dialogues vers l'enceinte Sonos de la pièce courante
-* Gestion du 5:1 (fibre optique et PlayBar)
 * Entièrement multi-rooms, incluant les clients mappés
+* Gestion du son déporté de la télévision (PlayBar)
 * Coupure et remise automatique du son lors d'un dialogue avec gestion du mode _loop_ inclus
-	* Mode _loop_: Permet d'enchaîner les commandes vocales sans répéter le mot-clé déclencheur
-* Gestion de vos bibilothèques musicales Sonos
-	* Accès direct ou recherche puis sélection par dialogue
-		* Listes de lecture importées
-		* Favoris
-		* Compositeurs
-		* Listes de lecture
-		* Albums
-		* Artistes
-		* Genres
-		* Pistes
-* Gestion de vos bibilothèques musicales Spotify (Compte Premium requis)
-	* Accès direct ou recherche puis sélection par dialogue
+* Gestion de vos bibilothèques musicales Sonos par sélection vocale directe ou recherche et sélection par dialogue
+	* Listes de lecture importées
+	* Favoris
+	* Compositeurs
+	* Listes de lecture
+	* Albums
+	* Artistes
+	* Genres
+	* Pistes
+* Gestion de vos bibilothèques musicales Spotify (Compte Premium requis) 
+	* Sélection vocale directe ou recherche et sélection par dialogue de
 		* Albums
 		* Listes de lecture
-	* Recherche Spotify globale par titre, titre et artiste, genre, artiste
+	* Recherche de musique Spotify par titre, titre et artiste, genre, artiste
 	* Commande vocale d'ajout de l'album en cours dans vos albums Spotify
-* Gestion de vos radios
-	* Accès direct ou recherche puis sélection par dialogue
+* Gestion de vos radios préférées par sélection vocale directe ou recherche et sélection par dialogue
 * Commandes vocales:
 	* Informations sur l'écoute en cours
 	* Démarrer/stopper la musique
 	* Volume (légèrement et fort)
 	* Couper/remettre le son
 	* Musique suivante/précédente
-	* Transfert de la source télévision sur la playBar (5:1)
-* Fenêtre de saisie direct au clavier avec correction et sauvegarde
+	* Transfert de la source télévision sur la playBar
 * Réveil et programmation (nécessite le plug-in [scenariz](https://github.com/Spikharpax/Avatar-Plugin-scenariz))
+* Fenêtre de saisie avec liste de sélection des genres (Spotify)
+
+<p align="center"><img src="assets/image/sonos_node.png" width="50%" height="50%"/></p>
 
 
 ***
@@ -64,6 +62,9 @@
 
 ***
 ## ★ Historique
+* Version 1.4 (29-05-2019): 
+	* Stabilisation du code et améliorations
+	* Correction et ajout de règles vocales pour la recherche par Titre (Spotify)
 * Version 1.3 (18-03-2019): 
 	* Amélioration de la restitution des informations de lecture
 	* Correction de la lecture pour la fonction réveil

@@ -323,6 +323,12 @@ exports.getPluginPath = function() {
 
 exports.init = function(){
 
+  Avatar.listen('getSonosVolume', function(data) {
+    getVolume(data.client, (value) => {
+      data.callback(value);
+    });
+	});
+
 	DeviceDiscovery((device, model) => {
       device.deviceDescription()
       .then (function (info) {
@@ -362,7 +368,7 @@ exports.init = function(){
       });
 
       const {SpotifySearch} = require('./services/SpotifySearch.js');
-      SpotifySearchAPI = new SpotifySearch(SpotifyApi);
+      SpotifySearchAPI = new SpotifySearch(SpotifyApi, (Config.modules.SonosPlayer.Spotify.available_market || 'FR'));
 
       const {SpotifyPlaylists} = require('./services/SpotifyPlaylists.js');
       SpotifyPlaylistsAPI = new SpotifyPlaylists(SpotifyApi);
@@ -429,7 +435,8 @@ function subClassSpeak () {
       	  client_backupPreset  = _.filter(backupPreset.clients, function(cl){
       			return cl.players[0].roomName == client;
       		});
-        }
+        } else if (!backupPreset)
+          backupPreset = {"clients" : []};
 
         tts = tts.replace(/[\n]/gi, "" ).replace(/[\r]/gi, "" );
         if (tts.indexOf('|') != -1)
@@ -465,18 +472,14 @@ function subClassSpeak () {
                               });
                             });
                           } else {
-                        player.device.setMuted(false)
-                        .then(() => {
-                            speak(player, client, tts, end, callback);
-                        })
-                      }
+                            player.device.setMuted(false)
+                            .then(() => {
+                                speak(player, client, tts, end, callback);
+                            })
+                          }
                   })
                   .catch(err => {
-                      let even = _.find(Config.modules.SonosPlayer.speech.partageFolders, function(folder){
-                        return mediaInfo.uri.toLowerCase().indexOf(folder.toLowerCase()) != -1;
-                      });
-
-                      if (!even && (!client_backupPreset || client_backupPreset.length == 0)) {
+                      if (!client_backupPreset || client_backupPreset.length == 0) {
                           player.device.getMuted()
                           .then(muted => {
                             player.device.setMuted(false)
@@ -507,46 +510,95 @@ function subClassSpeak () {
 }
 
 
+function getSpeak(client, tts, callback) {
+
+  let clientDir = reformatString(client);
+
+  let ttsDir = tts;
+  if (ttsDir.length > 128) ttsDir = ttsDir.substring(0,128);
+  ttsDir = reformatString(ttsDir);
+
+  let jsonfile = path.resolve(__dirname, 'tts', 'speech', clientDir, ttsDir, 'timeout.json');
+  let wavfile = path.resolve(__dirname, 'tts', 'speech', clientDir, ttsDir, 'speech.wav');
+
+  if (fs.existsSync(jsonfile) && fs.existsSync(wavfile)) {
+     let json = fs.readJsonSync(jsonfile, { throws: false });
+     callback ({ file: clientDir+'/'+ttsDir, timeout: json.timeout});
+  } else {
+     if (fs.existsSync(jsonfile)) fs.removeSync(jsonfile);
+     if (fs.existsSync(wavfile)) fs.removeSync(wavfile);
+
+     ttsToWav (clientDir, ttsDir, tts, (filename) => {
+        if (filename) {
+          speak_states (clientDir, filename, (timeout) => {
+              if (!fs.existsSync(wavfile))
+                return callback();
+              if (!timeout) {
+                  timeout = Config.modules.SonosPlayer.speech.default_length * 1000;
+                  warn('Set default timeout Sonos speak:', (timeout.toString() + 's'));
+              }
+              fs.writeJsonSync(jsonfile, {"timeout" : timeout});
+              callback ({ file: clientDir+'/'+ttsDir, timeout: timeout});
+          }, ttsDir);
+        } else {
+            callback();
+        }
+      })
+  }
+}
+
+
 function speak(player, client, tts, end, callback) {
 
-    ttsToWav (client, tts, (filename) => {
-        speak_states (client, filename, (timeout) => {
-            if (!timeout) {
-                timeout = Config.modules.SonosPlayer.speech.default_length * 1000;
-                warn('Set default timeout Sonos speak:', (timeout.toString() + 's'));
-            }
+    let ttsDir = (client.indexOf(' ') != -1) ? client.replace(/ /g,"_") : client;
 
-            console.log ('Timeout Sonos speak:', (parseInt((((timeout * Config.modules.SonosPlayer.speech.add_timeout) / 100) + timeout) * 1000).toString() + 'ms'));
-            let ttsDir = (client.indexOf(' ') != -1) ? client.replace(/ /g,"_") : client;
-            let options = {
-                uri: 'x-file-cifs://'+Config.modules.SonosPlayer.speech.ttsPartage+'/tts/speech/'+ttsDir+'/speech.wav',
-                onlyWhenPlaying: false, // It will query the state anyway, don't play the notification if the speaker is currently off.
-                volume: ((Config.modules.SonosPlayer.speech.volume[client]) ? Config.modules.SonosPlayer.speech.volume[client] : Config.modules.SonosPlayer.speech.default_volume)// Change the volume for the notification, and revert back afterwards.
-            };
-
-            player.device.setAVTransportURI(options).then((state) => {
-                player.device.setVolume(options.volume).then(() => {
-                    setTimeout(function(){
-                        if (end == true) {
-                            transportClosure(client, function() {
-                                if (callback) callback();
-                            });
-                        } else {
-                            if (callback) callback();
-                        }
-                  	}, parseInt((((timeout * Config.modules.SonosPlayer.speech.add_timeout) / 100) + timeout ) * 1000));
+    getSpeak(ttsDir, tts, (info) => {
+          if (!info) {
+            if (end == true) {
+                transportClosure(client, function() {
+                    if (callback) callback();
                 });
-             }).catch(err => {
-                error(((err) ? "Sonos: " + err : "Impossible de lire le fichier speech"));
-                if (end == true) {
-                    transportClosure(client, function() {
-                        if (callback) callback();
-                    });
-                } else {
-									if (callback) callback();
-								}
-            });
-        });
+            } else {
+                Avatar.speak("J'ai rencontré une erreur dans ce que je dois dire", client, function(){
+                  transportClosure(client, function() {
+                      if (callback) callback();
+                  });
+                });
+            }
+            return;
+          }
+          let timeout = info.timeout;
+          ttsDir =info.file;
+
+          //console.log ('Timeout Sonos speak:', (parseInt((((timeout * Config.modules.SonosPlayer.speech.add_timeout) / 100) + timeout) * 1000).toString() + 'ms'));
+          let options = {
+              uri: 'x-file-cifs://'+Config.modules.SonosPlayer.speech.ttsPartage+'/tts/speech/'+ttsDir+'/speech.wav',
+              onlyWhenPlaying: false, // It will query the state anyway, don't play the notification if the speaker is currently off.
+              volume: ((Config.modules.SonosPlayer.speech.volume[client]) ? Config.modules.SonosPlayer.speech.volume[client] : Config.modules.SonosPlayer.speech.default_volume)// Change the volume for the notification, and revert back afterwards.
+          };
+
+          player.device.setAVTransportURI(options).then((state) => {
+              player.device.setVolume(options.volume).then(() => {
+                  setTimeout(function(){
+                      if (end == true) {
+                          transportClosure(client, function() {
+                              if (callback) callback();
+                          });
+                      } else {
+                          if (callback) callback();
+                      }
+                	}, parseInt((((timeout * Config.modules.SonosPlayer.speech.add_timeout) / 100) + timeout ) * 1000));
+              });
+           }).catch(err => {
+              error(((err) ? "Sonos: " + err : "Impossible de lire le fichier speech"));
+              if (end == true) {
+                  transportClosure(client, function() {
+                      if (callback) callback();
+                  });
+              } else {
+								if (callback) callback();
+							}
+          });
     });
 }
 
@@ -627,6 +679,7 @@ function transportClosure (client, callback) {
             }).catch((err) => {
                 removeClientFromPreset(client);
                 console.log('erreur dans le transportClosure', err);
+                Avatar.Speech.end(client);
                 if (callback) callback();
             });
 		} else  if (callback) callback();
@@ -813,7 +866,7 @@ function play(player, client, fullpathfile, playfile, end, callback) {
         warn('Set default timeout Sonos play:', (timeout.toString() + 's'));
       }
 
-      console.log ('Timeout Sonos play:', (parseInt((((timeout * Config.modules.SonosPlayer.speech.add_timeout) / 100) + timeout) * 1000).toString() + 'ms'));
+      //console.log ('Timeout Sonos play:', (parseInt((((timeout * Config.modules.SonosPlayer.speech.add_timeout) / 100) + timeout) * 1000).toString() + 'ms'));
 
       let options = {
           uri: 'x-file-cifs:'+playfile,
@@ -880,6 +933,7 @@ exports.action = function(data, callback){
       volumeLowDown: function() { volumeDown (data, client, 5); },
       volumeUp : function() { volumeUp (data, client, 20); },
       volumeDown: function() { volumeDown (data, client, 20); },
+      setVolume: function() { setVolume (client, data.action.value); },
       activateTvSound: function() { tvSound (data, client); },
       currentTrack: function() {currentTrack(data, client)},
       playMusic: function() { playList (data, client);},
@@ -1024,7 +1078,7 @@ function askSpotifySearch(type, data, client, player) {
                 return spotifySearchGenre(data, client, player);
               }
 
-              if (answer.indexOf('titre') != -1) {
+              if (answer.indexOf('titre') != -1 || answer.indexOf('album') != -1) {
                 return spotifySearchTitre(data, client, player);
               }
 
@@ -1101,10 +1155,13 @@ function spotifySearchGenre(data, client, player) {
         tts = "Je suis désolé, j'ai trouvé plusieurs genres avec ce que tu as demandé. Essayes d'être plus précis";
 
       Avatar.speak(tts, data.client, function(){
-        if (Avatar.isMobile(data.client))
+        setTimeout(function(){
+          spotifySearchGenre(data, client, player);
+        }, 1500);
+      /*  if (Avatar.isMobile(data.client))
             Avatar.Socket.getClientSocket(data.client).emit('askme_done');
         else
-            Avatar.Speech.end(data.client);
+            Avatar.Speech.end(data.client); */
       });
     }
   })
@@ -1188,6 +1245,81 @@ function askSpotifySearchGenre(data, client, player) {
 }
 
 
+
+function classByTypes (list, client, callback) {
+
+  let class_types = _.groupBy(list, function(num){
+    if (num.album.album_type)
+      return num.album.album_type;
+  });
+
+  if (class_types && Object.keys(class_types).length > 1) {
+    let class_types_size = Object.keys(class_types).length;
+    let list_type = [];
+    let size = 1;
+    let tts = "j'ai";
+    for (let type in class_types) {
+        tts = tts + (size < class_types_size ? " des " : " et des ") + type;
+        list_type.push(type);
+        size += 1;
+    }
+
+    tts = tts + ". Ou tu veux peut-être tout les types ?";
+    Avatar.askme(tts , client,
+        {
+            "*": "generic",
+            "terminer": "done"
+        }, 0, function (answer, end) {
+
+          if (answer && answer.indexOf('generic') != -1) {
+              end(client);
+
+              answer = answer.split(':')[1];
+              let final_list;
+              if (answer.toLowerCase().indexOf('tout') != -1 || answer.toLowerCase().indexOf('tous') != -1) {
+                final_list = list;
+                answer = 'tout';
+              } else {
+                let i=0;
+                for (i; i < list_type.length; i++) {
+                  if (answer.toLowerCase().indexOf(list_type[i]) != -1) {
+                    list = class_types[list_type[i]];
+                    answer = list_type[i];
+                    break;
+                  }
+                }
+
+                if (i < list_type.length) {
+                  final_list = [];
+                  for (let i in list) {
+                    if (list[i].album)
+                      final_list.push(list[i].album);
+                  }
+                } else {
+                  final_list = list;
+                  answer = 'tout';
+                }
+              }
+              return callback({answer: answer, list: final_list});
+          }
+
+          // Grammaire fixe
+          switch(answer) {
+            case "done":
+            default:
+              Avatar.speak("Terminé", client, function(){
+                  end(client, true);
+              });
+         }
+       })
+
+  } else {
+    callback({answer: 'tout', list: list})
+  }
+
+}
+
+
 function spotifySearchTitre (data, client, player) {
 
     let titre;
@@ -1200,27 +1332,19 @@ function spotifySearchTitre (data, client, player) {
 
             let answer = retval.answer;
             retval = retval.titres;
-            if (retval.length == 1) {
-              titre = SonosPlayerAPI.getLexic(retval.name);
-              let artist = (retval.artists && retval.artists[0]) ? SonosPlayerAPI.getLexic(retval.artists[0].name) : null;
-              let speech = (artist) ? 'Je met '+titre+' de l\'artiste '+artist : 'Je met '+titre;
-              if (sonosWindow)
-                    titre = ipcRenderer.sendSync('SonosSay', titre);
-
-              Avatar.speak(speech, data.client, () => {
-                  resolve(retval);
-              });
-              return;
-            }
-
             answer = SonosPlayerAPI.getLexic(answer);
             if (sonosWindow)
                   answer = ipcRenderer.sendSync('SonosSay', answer);
-            Avatar.speak('J\'ai trouvé '+retval.length+' titres pour '+answer, data.client, () => {
-              searchForMultipleAlbums (data, retval, 0, null, (item) => {
-                 resolve(item);
+
+            classByTypes (retval, data.client, (result) => {
+              let tts = result.answer == 'tout' ? ' résultats pour ce titre.': ' '+result.answer+' avec ce titre.';
+              Avatar.speak('J\'ai trouvé '+result.list.length+tts, data.client, () => {
+                searchForMultipleAlbums (data, result.list, 0, null, (item) => {
+                   resolve(item);
+                });
               });
-            })
+            });
+            return;
         })
     })
     .then(item => playMusic(data, client, player.device, item, true))
@@ -1236,10 +1360,13 @@ function spotifySearchTitre (data, client, player) {
         : "Je suis désolé, je n'ai rien trouvé pour le titre "+titre;
 
         Avatar.speak(tts, data.client, function(){
-          if (Avatar.isMobile(data.client))
+          setTimeout(function(){
+            spotifySearchTitre (data, client, player);
+          }, 1500);
+          /*if (Avatar.isMobile(data.client))
               Avatar.Socket.getClientSocket(data.client).emit('askme_done');
           else
-              Avatar.Speech.end(data.client);
+              Avatar.Speech.end(data.client);*/
         });
       }
     })
@@ -1269,6 +1396,7 @@ function askSpotifySearchTitre (data, client, player) {
         ipcRenderer.sendSync('SonosSpeech', answer);
 
       answer = SonosPlayerAPI.getSearchLexic(answer);
+
       if (sonosWindow)
         answer = ipcRenderer.sendSync('SonosUnderstand', answer);
 
@@ -1281,6 +1409,8 @@ function askSpotifySearchTitre (data, client, player) {
       } else if (answer.toLowerCase().indexOf(',') != -1 ){
           artist = answer.split(',')[1];
           title = answer.split(',')[0];
+      } else {
+        title = answer;
       }
 
       return {title: title, artist: artist};
@@ -1378,10 +1508,13 @@ function spotifySearchArtist(data, client, player) {
       : "Je suis désolé, je n'ai rien trouvé pour l'artiste "+artist;
 
       Avatar.speak(tts, data.client, function(){
-        if (Avatar.isMobile(data.client))
+        setTimeout(function(){
+          spotifySearchArtist(data, client, player);
+        }, 1500);
+      /*  if (Avatar.isMobile(data.client))
             Avatar.Socket.getClientSocket(data.client).emit('askme_done');
         else
-            Avatar.Speech.end(data.client);
+            Avatar.Speech.end(data.client);*/
       });
     }
   })
@@ -1607,10 +1740,13 @@ function spotifyPlaylist(data, client, player, answered) {
                 Avatar.Speech.end(data.client);
         } else {
             Avatar.speak("Je suis désolé, je n'ai pas trouvé ce que tu demandes", data.client, function(){
-              if (Avatar.isMobile(data.client))
+              setTimeout(function(){
+                askSpotifyPlaylist(data, client, player);
+              }, 1500);
+              /*if (Avatar.isMobile(data.client))
                   Avatar.Socket.getClientSocket(data.client).emit('askme_done');
               else
-                  Avatar.Speech.end(data.client);
+                  Avatar.Speech.end(data.client);*/
             });
         }
     })
@@ -1807,14 +1943,17 @@ function searchForMultipleAlbums (data, albums, pos, list, callback) {
 
   let name = SonosPlayerAPI.getLexic(albums[pos].name || albums[pos].title || 'Sans nom');
   let artiste;
-  if (list && albums[pos].artists && albums[pos].artists[0])
+  if (albums[pos].artists && albums[pos].artists[0])
     artiste = SonosPlayerAPI.getLexic(albums[pos].artists[0].name);
-  else
-    list = null;
 
-  let tts = !list ? name : name+" de "+artiste;
+  let tts = !artiste ? name : name+" de "+artiste;
+
+  if (albums[pos].album)
+    tts = tts + ". Album: " + (albums[pos].album.name || albums[pos].album.title);
+
   Avatar.askme(tts, data.client,
       {
+          "qu'est ce que je peux dire" : "sommaire",
           "suivant": "next",
           "précédent": "previous",
           "vas à la fin": "end",
@@ -1822,6 +1961,10 @@ function searchForMultipleAlbums (data, albums, pos, list, callback) {
           "vas au début": "begin",
           "retourne au début": "begin",
           "mets-le": "putit",
+          "mets l'album": "putalbum",
+          "c'est quoi l'album": "whatisalbum",
+          "quel album": "whatisalbum",
+          "donnes-moi l'album": "whatisalbum",
           "c'est bon": "putit",
           "ok": "putit",
           "vas-y mets-le": "putit",
@@ -1837,9 +1980,13 @@ function searchForMultipleAlbums (data, albums, pos, list, callback) {
                 Avatar.speak("Suivant ou Précédent.", data.client, function(){
                   Avatar.speak("Vas au début, au milieu ou à la fin.", data.client, function(){
                     Avatar.speak("Mets-le, c'est bon ou ok.", data.client, function(){
-                      Avatar.speak("Comme tu veux ou fais toi plaisir.", data.client, function(){
-                        Avatar.speak("ou terminé.", data.client, function(){
-                          searchForMultipleAlbums (data, albums, pos, list, callback);
+                      Avatar.speak("Mets l'album", data.client, function(){
+                        Avatar.speak("Quel album ou c'est quoi l'album", data.client, function(){
+                          Avatar.speak("Comme tu veux ou fais toi plaisir.", data.client, function(){
+                            Avatar.speak("ou terminé.", data.client, function(){
+                              searchForMultipleAlbums (data, albums, pos, list, callback);
+                            });
+                          });
                         });
                       });
                     });
@@ -1867,6 +2014,36 @@ function searchForMultipleAlbums (data, albums, pos, list, callback) {
               end(data.client);
               searchForMultipleAlbums (data, albums, (Math.floor(albums.length / 2)), list, callback);
               break;
+            case "whatisalbum":
+                end(data.client);
+                if (albums[pos].album) {
+                  answer = SonosPlayerAPI.getLexic(albums[pos].album.name || albums[pos].album.title);
+                  Avatar.speak("Album "+answer, data.client, function() {
+                      setTimeout(function(){
+                        searchForMultipleAlbums (data, albums, pos, list, callback);
+                      }, 1500);
+                  });
+                } else {
+                  Avatar.speak("Il n\'y a pas d\'album pour ce titre.", data.client, function() {
+                    setTimeout(function(){
+                      searchForMultipleAlbums (data, albums, pos, list, callback);
+                    }, 1500);
+                  });
+                }
+                break;
+            case "putalbum":
+                end(data.client);
+                if (albums[pos].album) {
+                  answer = SonosPlayerAPI.getLexic(albums[pos].album.name || albums[pos].album.title);
+                  Avatar.speak('Je mets '+answer, data.client, function() {
+                      callback(albums[pos].album);
+                  });
+                } else {
+                  Avatar.speak('Il n\'y a pas d\'album pour ce titre. Je mets '+answer, data.client, function() {
+                      callback(albums[pos]);
+                  });
+                }
+                break;
             case "putit":
               end(data.client);
               answer = SonosPlayerAPI.getLexic(albums[pos].name || albums[pos].title);
@@ -2698,6 +2875,51 @@ function volumeDown (data, client, value) {
 }
 
 
+function getVolume(client, callback) {
+  let player =  _.find(devices, function(num){
+      return num.id == client;
+  });
+
+  if (player) {
+    player.device.getVolume()
+    .then(volume => {
+      callback(volume);
+    })
+    .catch(err => {
+        console.log('Sonos Get Volume:', err);
+        callback();
+    });
+  } else {
+      callback();
+  }
+}
+
+
+function setVolume (client, value) {
+
+  let player =  _.find(devices, function(num){
+      return num.id == client;
+  });
+
+  if (player) {
+      player.device.setVolume(value)
+      .catch(err => {
+          console.log('Sonos volumeUp:', err);
+          Avatar.speak("je suis désolé. j'ai rencontré une erreur.", client, function() {
+            Avatar.Speech.end(client);
+          });
+      });
+  } else {
+    Avatar.speak("je suis désolé, je ne trouve pas de playeur " + client, client, function() {
+        Avatar.Speech.end(client);
+    });
+  }
+
+}
+
+
+
+
 
 function volumeUp (data, client, value) {
 
@@ -3015,9 +3237,9 @@ function askForMusic (data, client, type) {
           let title = ipcRenderer.sendSync('SonosUnderstand');
           if (title) {
             if (type == 'Music')
-              searchMusic(data, client, player, title);
+              searchMusic(data, client, player, title, type);
             else
-              searchRadio(data, client, player, title);
+              searchRadio(data, client, player, title, type);
             return;
           }
         }
@@ -3043,9 +3265,9 @@ function askForMusic (data, client, type) {
                       answer = ipcRenderer.sendSync('SonosUnderstand', answer);
 
                     if (type == 'Music')
-                      searchMusic(data, client, player, answer);
+                      searchMusic(data, client, player, answer, type);
                     else
-                      searchRadio(data, client, player, answer);
+                      searchRadio(data, client, player, answer, type);
                     return;
                 }
                 // Grammaire fixe
@@ -3149,7 +3371,7 @@ function asYouWant (data, client, player) {
 
 
 
-function searchRadio (data, client, player, answered) {
+function searchRadio (data, client, player, answered, type) {
 
   getRadioLibrary(data, client, player.device, answered)
   .then(items => {
@@ -3194,10 +3416,13 @@ function searchRadio (data, client, player, answered) {
       } else {
           let tts = "Je suis désolé, je n'ai pas trouvé ce que tu demandes";
           Avatar.speak(tts, data.client, function(){
-            if (Avatar.isMobile(data.client))
+            setTimeout(function(){
+              askForMusic (data, client, type);
+            }, 1500);
+            /*if (Avatar.isMobile(data.client))
                 Avatar.Socket.getClientSocket(data.client).emit('askme_done');
             else
-                Avatar.Speech.end(data.client);
+                Avatar.Speech.end(data.client);*/
           });
       }
   })
@@ -3215,7 +3440,7 @@ function searchRadio (data, client, player, answered) {
 
 
 
-function searchMusic (data, client, player, answered) {
+function searchMusic (data, client, player, answered, type) {
 
     getMusicLibrary(player.device, answered)
     .then(item => searchFavorites(item, player.device, answered))
@@ -3255,17 +3480,21 @@ function searchMusic (data, client, player, answered) {
     .then(item => playMusic(data, client, player.device, item))
     .then(state => {
         if (state && typeof state === 'boolean') {
-              if (Avatar.isMobile(data.client))
+              if (Avatar.isMobile(data.client)) {
                 Avatar.Socket.getClientSocket(data.client).emit('askme_done');
-              else
+              } else {
                   Avatar.Speech.end(data.client);
+              }
         } else {
             let tts = "Je suis désolé, je n'ai pas trouvé ce que tu demandes";
             Avatar.speak(tts, data.client, () => {
-              if (Avatar.isMobile(data.client))
+              setTimeout(function(){
+                askForMusic (data, client, type);
+              }, 1500);
+              /*if (Avatar.isMobile(data.client))
                   Avatar.Socket.getClientSocket(data.client).emit('askme_done');
               else
-                  Avatar.Speech.end(data.client);
+                  Avatar.Speech.end(data.client);*/
             });
         }
     })
@@ -3379,7 +3608,13 @@ function playMusic(data, client, device, item, spotify, wakeup) {
         .then(list => {
             if (!list || !list.items || list.items.length == 0) {
               device.play(item.uri)
-              .then(() => resolve(true))
+              .then(() => device.selectQueue())
+              .then(state => {
+                  if (wakeup || (Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client) && Avatar.currentRoom == client)) {
+                      removeClientFromPreset(client);
+                  }
+                  resolve(true);
+              })
               .catch(err => {
                   reject(err);
               })
@@ -3387,7 +3622,12 @@ function playMusic(data, client, device, item, spotify, wakeup) {
               device.selectQueue()
               .then(state => device.flush())
               .then(data => device.play(item.uri))
-              .then(() => resolve(true))
+              .then(() => {
+                  if (wakeup || (Avatar.isMobile(data.client) && Avatar.Socket.isServerSpeak(data.client) && Avatar.currentRoom == client)) {
+                      removeClientFromPreset(client);
+                  }
+                  resolve(true);
+              })
               .catch(err => {
                   reject(err);
               })
@@ -3418,12 +3658,9 @@ function setClient (data) {
 
 
 
-function speak_states (client, filename, callback) {
+function speak_states (client, filename, callback, tts) {
 
-	var exec = require('child_process').exec
-	, child;
-
-	if (client.indexOf(' ') != -1) client = client.replace(/ /g,"_");
+	var exec = require('child_process').exec;
 
 	// Construct a filesystem neutral filename
 	var webroot = path.resolve(__dirname);
@@ -3459,6 +3696,7 @@ function speak_states (client, filename, callback) {
 									try {
 										var json = fs.readFileSync(webroot + '/../../../../state.json','utf8');
 											stats = JSON.parse(json);
+                      fs.removeSync(webroot + '/../../../../state.json');
 											callback(stats.Length_seconds);
 									} catch(ex){
 										error("error: " + ex.message);
@@ -3471,59 +3709,155 @@ function speak_states (client, filename, callback) {
 		}
 
 	} else {
+
     var fileresult = 'speech.wav';
-  	var filepath = path.resolve(webroot, 'tts', 'speech', client, fileresult);
+  	var filepath = path.resolve(webroot, 'tts', 'speech', client, tts, fileresult);
 		var cmd = webroot + '/sox/sox -q ' + filename + ' ' + filepath + ' stat -−json';
 		var stats;
+
 		var child = exec(cmd, function (err, stdout, stderr) {
-      fs.removeSync(filename);
 			if (err) {
 				error('Sox error:', err || 'Unable to start Sox');
-				callback();
+        child = null;
 			}
 		});
 
-		if (child)
+		if (child) {
 			child.stdout.on("close", function() {
 				setTimeout(function(){
 					try {
+            if (fs.existsSync(filename)) fs.removeSync(filename);
             var json = fs.readFileSync(webroot + '/../../../../state.json','utf8');
 						stats = JSON.parse(json);
+            fs.removeSync(webroot + '/../../../../state.json');
 						callback(stats.Length_seconds);
 					} catch(ex){
+            if (fs.existsSync(filename)) fs.removeSync(filename);
 						error("error: " + ex.message);
 						callback();
 					}
 				}, 200);
 			});
+    } else {
+      error("Sox error: Unable to continue");
+      callback();
+    }
 	}
 
 }
 
 
 
-function ttsToWav (client, tts, callback) {
+reformatString = function (tts) {
 
-	var exec = require('child_process').exec
-	, child;
+	for (var i = 0; i < tts.length; i++) {
+      let num = parseInt(fixedCharCodeAt(tts, i));
+      if (num > 128 || isNaN(num)) {
+		       tts = tts.replace(tts[i], '_');
+      }
+	}
+  tts = reformatStringNext (tts);
+  tts = tts.replace(/_/g, '');
+	return tts;
+}
 
-	if (client.indexOf(' ') != -1) client = client.replace(/ /g,"_");
+
+function fixedCharCodeAt (str, idx) {
+    idx = idx || 0;
+    var code = str.charCodeAt(idx);
+    var hi, low;
+
+    if (0xD800 <= code && code <= 0xDBFF) {
+        hi = code;
+        low = str.charCodeAt(idx+1);
+        if (isNaN(low)) {
+            throw "Le demi-codet supérieur n'est pas suivi "+
+                  "par un demi-codet inférieur dans fixedCharCodeAt()";
+        }
+        return ((hi - 0xD800) * 0x400) + (low - 0xDC00) + 0x10000;
+    }
+    if (0xDC00 <= code && code <= 0xDFFF) {
+        return false;
+    }
+    return code;
+}
+
+
+
+
+
+reformatStringNext = function(str) {
+
+  var accent = [
+      / /g, /'/g,
+      /"/g, /\?/g,
+      /:/g, /\|/g,
+      /\//g, /\\/g,
+      /\>/g, /\</g,
+      /!/g, /\./g,
+      /\(/g, /\)/g,
+      /\{/g, /\}/g,
+      /\[/g, /\]/g,
+      /\#/g, /\@/g,
+      /\-/g, /\&/g,
+      /\;/g, /\,/g,
+      /\^/g, /\$/g,
+      /\~/g, /\=/g,
+      /\*/g, /\`/g
+  ];
+  for(var i = 0; i < accent.length; i++){
+      str = str.replace(accent[i], '_');
+  }
+
+  return str;
+}
+
+
+function ttsToWav (client, ttsDir, tts, callback) {
+
+	var exec = require('child_process').exec;
+
+  // Decode URI
+  tts = decodeURIComponent(tts);
+
+  var accent = [
+    /"/g, /\|/g,
+    /\//g, /\\/g,
+    /\>/g, /\</g,
+    /\(/g, /\)/g,
+    /\#/g, /\@/g,
+    /\{/g, /\}/g,
+    /\`/g
+  ];
+  for(var i = 0; i < accent.length; i++){
+      tts = tts.replace(accent[i], '');
+  }
 
 	var webroot = path.resolve(__dirname);
 	var filename = 'speech.mp3';
-	var filepath = path.resolve(webroot, 'tts', 'speech', client, filename);
-	fs.ensureDirSync(webroot + '/tts/speech/' + client);
-
-	// Decode URI
-	tts = decodeURIComponent(tts);
+	var filepath = path.resolve(webroot, 'tts', 'speech', client, ttsDir, filename);
+	fs.ensureDirSync(webroot+'/tts/speech/'+client+'/'+ttsDir);
 	// tts to wav
 	var execpath = webroot + '/lib/vbs/ttstowav.vbs';
-
-	child = exec( execpath + ' "'+ tts + '" "' + filepath + '"',
-	  function (err, stdout, stderr) {
-			if (err !== null) {
+  var	child = exec( execpath + ' "'+ tts + '" "' + filepath + '"', function (err, stdout, stderr) {
+			if (err) {
 				error('tts to wav error: ' + err);
-			} else
-				callback(filepath);
-	  });
+        return callback();
+			}
+	});
+
+  if (child) {
+    child.stdout.on("close", function() {
+      setTimeout(function(){
+          if (fs.existsSync(filepath))
+            callback(filepath);
+          else
+            callback();
+      }, 200);
+    });
+  } else {
+    error("Sox error: Unable to continue");
+    callback();
+  }
+
 }

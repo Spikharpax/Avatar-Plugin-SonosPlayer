@@ -1,8 +1,10 @@
+const _ = require('underscore');
+let market;
 
-var SpotifySearch = function SpotifySearch (SpotifyApi) {
+var SpotifySearch = function SpotifySearch (SpotifyApi, available_market) {
 
   this.SpotifyApi = SpotifyApi;
-
+  market = available_market;
 }
 
 
@@ -97,10 +99,12 @@ SpotifySearch.prototype.searchArtistAlbums = function (offset, artistID, albums,
               return callback();
 
           data.body.items.forEach(function(item) {
-            if (!item.album_group)
-              albums.push(item);
-            else if (item.album_group && item.album_group == 'album')
-              albums.push(item);
+              if (item.available_markets && _.contains(item.available_markets, market)) {
+                if (!item.album_group)
+                  albums.push(item);
+                else if (item.album_group && item.album_group == 'album')
+                  albums.push(item);
+              }
           });
 
           if ((offset+20) == 60)
@@ -117,22 +121,22 @@ SpotifySearch.prototype.searchArtistAlbums = function (offset, artistID, albums,
 
 
 SpotifySearch.prototype.searchTitre = function (titre, artist) {
+
     return new Promise((resolve, reject) => {
 
       let searchVal = (artist) ? 'track:'+titre+' artist:'+artist : 'track:'+titre;
-      let result = {};
       this.SpotifyApi.searchTracks(searchVal, {
           country: 'FR',
-          limit : 5, // 5 maxi...
+          limit : 20, // 5 maxi...
           offset : 0
       })
       .then(data => {
+          let result = [];
           if (data.body && data.body.tracks && data.body.tracks.items && data.body.tracks.items.length > 0) {
-            if (!artist || data.body.tracks.items.length == 1) {
+            if (data.body.tracks.items.length == 1) {
               let pos = Math.floor(Math.random() * data.body.tracks.items.length);
-              result = data.body.tracks.items[pos];
+              result.push(data.body.tracks.items[pos]);
             } else {
-              result = [];
               data.body.tracks.items.forEach(function(tracks) {
                 result.push(tracks);
               });

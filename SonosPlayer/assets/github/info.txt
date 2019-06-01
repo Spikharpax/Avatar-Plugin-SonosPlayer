@@ -1,15 +1,16 @@
 Contrôlez tous vos appareils et toute votre musique Sonos !
 
-! Le plug-in ultime !
+! Nouvelle version 1.4 !
+Stabilisation du code et beaucoup d'améliorations
+Téléchargez_la vite !!
 
 - Découverte automatique des appareils
 - Utilisation des appareils Sonos comme enceintes Wi-fi pour les clients A.V.A.T.A.R, y compris le client Android mobile
-- Gestion du 5:1 par fibre optique et PlayBar intégré
+- Gestion de la PlayBar
 - Entièrement multi-rooms, incluant les pièces virtuels A.V.A.T.A.R
 - Coupure et remise automatique du son pendant un dialogue
 - Gestion de vos bibilothèques musicales Sonos
 - Gestion de vos bibilothèques musicales Spotify (Compte Premium requis)
 - Gestion de la télévision
-- Radios	
-
+- Gestion des radios préférées	
 
