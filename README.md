@@ -41,7 +41,7 @@
 * Réveil et programmation (nécessite le plug-in [scenariz](https://github.com/Spikharpax/Avatar-Plugin-scenariz))
 * Fenêtre de saisie avec liste de sélection des genres (Spotify)
 
-<p align="center"><img src="assets/image/sonos_node.png" width="50%" height="50%"/></p>
+<p align="left"><img src="assets/image/sonos_node.png" width="70%" height="70%"/></p>
 
 
 ***
