@@ -10,7 +10,7 @@
 * Utilisation des appareils Sonos comme enceintes Wi-fi pour les clients A.V.A.T.A.R
 	* Dialogues et questions/réponses entièrement synchronisés
 	* Compatibilité avec tous les plug-ins sans modification
-	* Permet d'avoir un clients mappé avec sa propre enceinte Sonos
+	* Permet d'avoir un client mappé avec sa propre enceinte Sonos
 	* Client mobile Android pouvant transférer ses dialogues vers l'enceinte Sonos de la pièce courante
 * Entièrement multi-rooms, incluant les clients mappés
 * Gestion du son déporté de la télévision (PlayBar)
