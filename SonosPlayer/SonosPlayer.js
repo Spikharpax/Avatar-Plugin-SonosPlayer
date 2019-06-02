@@ -1249,8 +1249,7 @@ function askSpotifySearchGenre(data, client, player) {
 function classByTypes (list, client, callback) {
 
   let class_types = _.groupBy(list, function(num){
-    if (num.album.album_type)
-      return num.album.album_type;
+      return (num.album && num.album.album_type) ? num.album.album_type : "non classé";
   });
 
   if (class_types && Object.keys(class_types).length > 1) {
@@ -1279,26 +1278,31 @@ function classByTypes (list, client, callback) {
               if (answer.toLowerCase().indexOf('tout') != -1 || answer.toLowerCase().indexOf('tous') != -1) {
                 final_list = list;
                 answer = 'tout';
-              } else {
-                let i=0;
-                for (i; i < list_type.length; i++) {
+              } else if (answer.toLowerCase().indexOf("non classé") != -1) {
+                for (let i=0; i < list_type.length; i++) {
                   if (answer.toLowerCase().indexOf(list_type[i]) != -1) {
-                    list = class_types[list_type[i]];
+                    final_list = _.filter(list, function(num){
+                      return !num.album.album_type;
+                    });
                     answer = list_type[i];
                     break;
                   }
                 }
-
-                if (i < list_type.length) {
-                  final_list = [];
-                  for (let i in list) {
-                    if (list[i].album)
-                      final_list.push(list[i].album);
+              } else {
+                for (let i=0; i < list_type.length; i++) {
+                  if (answer.toLowerCase().indexOf(list_type[i]) != -1) {
+                    final_list = _.filter(list, function(num){
+                      return num.album.album_type == list_type[i];
+                    });
+                    answer = list_type[i];
+                    break;
                   }
-                } else {
-                  final_list = list;
-                  answer = 'tout';
                 }
+              }
+              // test au cas ou...
+              if (!final_list) {
+                final_list = list;
+                answer = 'tout';
               }
               return callback({answer: answer, list: final_list});
           }
@@ -1337,7 +1341,7 @@ function spotifySearchTitre (data, client, player) {
                   answer = ipcRenderer.sendSync('SonosSay', answer);
 
             classByTypes (retval, data.client, (result) => {
-              let tts = result.answer == 'tout' ? ' résultats pour ce titre.': ' '+result.answer+' avec ce titre.';
+              let tts = result.answer == 'tout' ? ' résultats contenant ce titre.': ' '+result.answer+' contenant ce titre.';
               Avatar.speak('J\'ai trouvé '+result.list.length+tts, data.client, () => {
                 searchForMultipleAlbums (data, result.list, 0, null, (item) => {
                    resolve(item);
