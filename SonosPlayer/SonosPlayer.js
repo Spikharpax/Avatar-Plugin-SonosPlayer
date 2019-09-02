@@ -299,6 +299,23 @@ exports.timeoutCallbackEnd = function(clientFrom, clientTo) {
 }
 
 
+// Fonction de modification de la voix courante
+function change_voice () {
+
+  if (Config.modules.SonosPlayer.voice && Config.modules.SonosPlayer.voice.active && typeof Config.modules.SonosPlayer.voice.active === 'object' && (Config.modules.SonosPlayer.voice.active).length > 0) {
+    if ((Config.modules.SonosPlayer.voice.active.indexOf(Config.modules.SonosPlayer.voice.current) == -1) || (Config.modules.SonosPlayer.voice.active.indexOf(Config.modules.SonosPlayer.voice.current) == (Config.modules.SonosPlayer.voice.active.length - 1))) {
+      Config.modules.SonosPlayer.voice.current = Config.modules.SonosPlayer.voice.active[0];
+    } else {
+      Config.modules.SonosPlayer.voice.current = Config.modules.SonosPlayer.voice.active[Config.modules.SonosPlayer.voice.active.indexOf(Config.modules.SonosPlayer.voice.current) + 1];
+    }
+
+    if (!Config.modules.SonosPlayer.voice.current) // juste au cas ou...
+      Config.modules.SonosPlayer.voice.current = "Par défaut";
+    fs.writeJsonSync(__dirname + '/SonosPlayer.prop', {"modules": {"SonosPlayer": Config.modules.SonosPlayer}});
+  }
+}
+
+
 // Fonction de subclassing de Avatar.speak
 // Initialisé au chargement d'Avatar
 exports.subclassSpeak = function() {
@@ -513,33 +530,39 @@ function subClassSpeak () {
 function getSpeak(client, tts, callback) {
 
   let clientDir = reformatString(client);
+  let voice = reformatVoiceFolder();
+  voice = (voice.indexOf(' ') != -1) ? voice.replace(/ /g,"_") : voice;
 
   let ttsDir = tts;
   if (ttsDir.length > 128) ttsDir = ttsDir.substring(0,128);
   ttsDir = reformatString(ttsDir);
 
-  let jsonfile = path.resolve(__dirname, 'tts', 'speech', clientDir, ttsDir, 'timeout.json');
-  let wavfile = path.resolve(__dirname, 'tts', 'speech', clientDir, ttsDir, 'speech.wav');
+  let jsonfile = path.resolve(__dirname, 'tts', 'speech', clientDir, voice, ttsDir, 'timeout.json');
+  let wavfile = path.resolve(__dirname, 'tts', 'speech', clientDir, voice, ttsDir, 'speech.wav');
 
   if (fs.existsSync(jsonfile) && fs.existsSync(wavfile)) {
      let json = fs.readJsonSync(jsonfile, { throws: false });
-     callback ({ file: clientDir+'/'+ttsDir, timeout: json.timeout});
+     callback ({ file: clientDir+'/'+voice+'/'+ttsDir, timeout: json.timeout});
   } else {
      if (fs.existsSync(jsonfile)) fs.removeSync(jsonfile);
      if (fs.existsSync(wavfile)) fs.removeSync(wavfile);
 
-     ttsToWav (clientDir, ttsDir, tts, (filename) => {
+     ttsToWav (clientDir, voice, ttsDir, tts, (filename) => {
         if (filename) {
           speak_states (clientDir, filename, (timeout) => {
               if (!fs.existsSync(wavfile))
                 return callback();
               if (!timeout) {
-                  timeout = Config.modules.SonosPlayer.speech.default_length * 1000;
-                  warn('Set default timeout Sonos speak:', (timeout.toString() + 's'));
+                  //timeout = Config.modules.SonosPlayer.speech.default_length * 1000;
+                  //warn('Set default timeout Sonos speak:', (timeout.toString() + 's'));
+                  warn('Unable to write tts file:', wavfile);
+                  let rmdir = path.resolve(__dirname, 'tts', 'speech', clientDir, voice, ttsDir);
+                  fs.removeSync(rmdir);
+                  return callback();
               }
-              fs.writeJsonSync(jsonfile, {"timeout" : timeout});
-              callback ({ file: clientDir+'/'+ttsDir, timeout: timeout});
-          }, ttsDir);
+              //fs.writeJsonSync(jsonfile, {"timeout" : timeout});
+              callback ({ file: clientDir+'/'+voice+'/'+ttsDir, timeout: timeout});
+          }, ttsDir, voice);
         } else {
             callback();
         }
@@ -622,6 +645,7 @@ function transportClosure (client, callback) {
         .then(() => {
             if (mediaInfo && mediaInfo.uri && mediaInfo.uri.indexOf('x-sonos-htastream:') == -1 && mediaInfo.uri.indexOf('mp3radio:') == -1) {
               player.device.getQueue().then((list) => {
+
                   if (list && ((list.items && list.items.length > 0) || list.length > 0)) {
                       player.device.selectQueue()
                       .then(() => player.device.selectTrack(mediaInfo.queuePosition))
@@ -861,6 +885,7 @@ function subClassPlay() {
 function play(player, client, fullpathfile, playfile, end, callback) {
 
     speak_states (client, fullpathfile, function(timeout) {
+
       if (!timeout) {
         timeout = Config.modules.SonosPlayer.speech.default_length * 1000;
         warn('Set default timeout Sonos play:', (timeout.toString() + 's'));
@@ -905,6 +930,9 @@ exports.action = function(data, callback){
 
 	// Tableau d'actions
 	var tblCommand = {
+      change_voice: function() {
+        change_voice();
+      },
       spotify: function() { if (SpotifyApi) {
                                   startSpotify(data, client, askForSpotify);
                             } else {
@@ -3493,8 +3521,8 @@ function searchMusic (data, client, player, answered, type) {
             let tts = "Je suis désolé, je n'ai pas trouvé ce que tu demandes";
             Avatar.speak(tts, data.client, () => {
               setTimeout(function(){
-                askForMusic (data, client, type);
-              }, 1500);
+                   askForMusic (data, client, type);
+                }, 1500);
               /*if (Avatar.isMobile(data.client))
                   Avatar.Socket.getClientSocket(data.client).emit('askme_done');
               else
@@ -3662,7 +3690,7 @@ function setClient (data) {
 
 
 
-function speak_states (client, filename, callback, tts) {
+function speak_states (client, filename, callback, tts, voice) {
 
 	var exec = require('child_process').exec;
 
@@ -3715,7 +3743,7 @@ function speak_states (client, filename, callback, tts) {
 	} else {
 
     var fileresult = 'speech.wav';
-  	var filepath = path.resolve(webroot, 'tts', 'speech', client, tts, fileresult);
+  	var filepath = path.resolve(webroot, 'tts', 'speech', client, voice, tts, fileresult);
 		var cmd = webroot + '/sox/sox -q ' + filename + ' ' + filepath + ' stat -−json';
 		var stats;
 
@@ -3817,9 +3845,18 @@ reformatStringNext = function(str) {
 }
 
 
-function ttsToWav (client, ttsDir, tts, callback) {
+function reformatVoiceFolder () {
+  let voice;
+  if (Config.modules.SonosPlayer.voice && Config.modules.SonosPlayer.voice.current && Config.modules.SonosPlayer.voice.current.toLowerCase() != 'par défaut')
+      voice = reformatString(Config.modules.SonosPlayer.voice.current);
+  else
+      voice = "default";
 
-	var exec = require('child_process').exec;
+  return voice;
+}
+
+
+function ttsToWav (client, voice, ttsDir, tts, callback) {
 
   // Decode URI
   tts = decodeURIComponent(tts);
@@ -3837,31 +3874,30 @@ function ttsToWav (client, ttsDir, tts, callback) {
       tts = tts.replace(accent[i], '');
   }
 
-	var webroot = path.resolve(__dirname);
-	var filename = 'speech.mp3';
-	var filepath = path.resolve(webroot, 'tts', 'speech', client, ttsDir, filename);
-	fs.ensureDirSync(webroot+'/tts/speech/'+client+'/'+ttsDir);
-	// tts to wav
-	var execpath = webroot + '/lib/vbs/ttstowav.vbs';
-  var	child = exec( execpath + ' "'+ tts + '" "' + filepath + '"', function (err, stdout, stderr) {
-			if (err) {
-				error('tts to wav error: ' + err);
-        return callback();
-			}
-	});
+	let file = path.resolve(__dirname, 'tts', 'speech', client, voice, ttsDir);
+	fs.ensureDirSync(file);
+  file = path.resolve(file, "speech.wav");
 
-  if (child) {
-    child.stdout.on("close", function() {
-      setTimeout(function(){
-          if (fs.existsSync(filepath))
-            callback(filepath);
-          else
-            callback();
-      }, 200);
-    });
-  } else {
-    error("Sox error: Unable to continue");
+  let options = {text: tts, file: file};
+  if (Config.modules.SonosPlayer.voice && Config.modules.SonosPlayer.voice.current && Config.modules.SonosPlayer.voice.current.toLowerCase() != "par défaut");
+    options.voice = Config.modules.SonosPlayer.voice.current;
+  if (Config.modules.SonosPlayer.voice && Config.modules.SonosPlayer.voice.volume)
+    options.volume = Config.modules.SonosPlayer.voice.volume.toString();
+  if (Config.modules.SonosPlayer.voice && Config.modules.SonosPlayer.voice.speed)
+    options.speed = Config.modules.SonosPlayer.voice.speed.toString();
+
+  const SimpleTTS = require("simpletts");
+  const TTS = new SimpleTTS();
+  TTS.ttswav(options)
+  .then(() => {
+    if (fs.existsSync(file))
+      callback(file);
+    else
+      callback();
+  })
+  .catch((err) => {
+    error('tts to wav error: ' + err);
     callback();
-  }
+  });
 
 }

@@ -1,5 +1,12 @@
 # Sonos
 
+! Nouvelle version 1.5 !
+Changer de voix depuis un client Web API est maintenant ajouté pour la voix Sonos:
+* Ajoutez la voix courante dans la propriété "voice" -> "current"
+	* La voix "scansoft virginie_dri40_16khz" est définie par défaut, veuillez la changer si vous en utilisez une autre
+* Ajoutez les voix disponibles dans la propriété tableau "voice" -> "active"
+	* Ceci fonctionne en boucle, la voix suivante est utilisée puis revient à la première
+
 SonosPlayer vous donne le pouvoir de contrôler votre système Sonos et toute votre musique.
 Il vous donne accès aussi à toute votre musique Spotify et beaucoup plus !
 

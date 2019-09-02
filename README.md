@@ -62,6 +62,8 @@
 
 ***
 ## ★ Historique
+* Version 1.5 (02-09-2019): 
+	* La voix Sonos peut maintenant être changée add-hoc depuis le nouveau client Web API A.V.A.T.A.R
 * Version 1.4 (29-05-2019): 
 	* Stabilisation du code et améliorations
 	* Correction et ajout de règles vocales pour la recherche par Titre (Spotify)

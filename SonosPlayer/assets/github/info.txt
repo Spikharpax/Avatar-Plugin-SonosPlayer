@@ -1,7 +1,7 @@
 Contrôlez tous vos appareils et toute votre musique Sonos !
 
-! Nouvelle version 1.4 !
-Stabilisation du code et beaucoup d'améliorations
+! Nouvelle version 1.5 !
+Vous pouvez changer de voix add-hoc depuis le nouveau client Web API
 Téléchargez-la vite !!
 
 - Découverte automatique des appareils
