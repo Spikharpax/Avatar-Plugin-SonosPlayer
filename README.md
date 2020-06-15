@@ -62,6 +62,9 @@
 
 ***
 ## ★ Historique
+* Version 2.0 (15-06-2020): 
+	* Dialogue avec A.V.A.T.A.R optimisés et en streaming
+	* Comptatibilité totale avec la nouvelle version du plugin Google-Assistant
 * Version 1.5 (02-09-2019): 
 	* La voix Sonos peut maintenant être changée add-hoc depuis le nouveau client Web API A.V.A.T.A.R
 * Version 1.4 (29-05-2019): 
