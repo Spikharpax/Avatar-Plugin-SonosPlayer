@@ -2101,12 +2101,9 @@ function searchMusicLibrary (device, searchPos, searchTerm, callback) {
     let searchTypes = Config.modules.SonosPlayer.musicTypes.search;
     if (searchPos == searchTypes.length)
         return callback(0);
-
     device.searchMusicLibrary(searchTypes[searchPos], searchTerm, {}).then( list => {
-
-        if (!list || (!list.items && list.length == 0) || (list.items && list.items.length == 0))
+        if (!list || !list.items  || (list.items && list.items.length == 0))
             return searchMusicLibrary (device, ++searchPos, searchTerm, callback);
-
         list.items = SonosPlayerAPI.matchTerm(list.items || list, searchTerm);
         list.returned = list.items.length;
         if (list.returned == 0)
@@ -2926,8 +2923,8 @@ function getBackupPreset (client) {
           if (client_backupPreset.length > 0) {
             return resolve(client_backupPreset[0]);
           }
-        } else
-          return resolve();
+        } //else
+        //  return resolve();
     }
 
     client = Avatar.currentRoom ? Avatar.currentRoom : Config.default.client;

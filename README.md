@@ -62,6 +62,9 @@
 
 ***
 ## ★ Historique
+* Version 2.1 (07-12-2020): 
+	* Correction dans la recherche de musique
+	* mise à jour des règles
 * Version 2.0 (15-06-2020): 
 	* Dialogue avec A.V.A.T.A.R optimisés et en streaming
 	* Comptatibilité totale avec la nouvelle version du plugin Google-Assistant
