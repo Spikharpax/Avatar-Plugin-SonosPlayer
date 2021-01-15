@@ -607,7 +607,6 @@ function removeClientFromPreset(client, callback) {
 }
 
 
-
 // Surclasse la fonction play
 function subClassPlay() {
 
@@ -652,7 +651,9 @@ function subClassPlay() {
         if (!Avatar.Socket.isServerSpeak(client) && !serverSpeak)
             return defaultplay(playfile,client,callback);
 
+        let playFileWithFolder;
         if (playfile.indexOf('@@') != -1) {
+          playFileWithFolder = playfile.replace('@@','');
           playfile = '//'+Config.modules.SonosPlayer.speech.ttsPartage+playfile.split('@@')[1];
         }
 
@@ -671,11 +672,11 @@ function subClassPlay() {
             player.device.getCurrentState().then((state) => {
                 let wasPlaying = (state === 'playing' || state === 'transitioning')
                 player.device.avTransportService().CurrentTrack().then(mediaInfo => {
-                  backupPresetBeforeNext (player, client, mediaInfo, playfile, client_backupPreset, wasPlaying, end, play, callback);
+                  backupPresetBeforeNext (player, client, mediaInfo, playfile, client_backupPreset, wasPlaying, end, play, callback, playFileWithFolder);
                 })
                 .catch(err => {
                   // Track vide genère une erreur
-                  backupPresetBeforeNext (player, client, null, playfile, client_backupPreset, false, end, play, callback);
+                  backupPresetBeforeNext (player, client, null, playfile, client_backupPreset, false, end, play, callback, playFileWithFolder);
                 });
              })
              .catch(err => {
@@ -690,7 +691,7 @@ function subClassPlay() {
 }
 
 
-function backupPresetBeforeNext (player, client, mediaInfo, playfile, client_backupPreset, wasPlaying, end, next, callback) {
+function backupPresetBeforeNext (player, client, mediaInfo, playfile, client_backupPreset, wasPlaying, end, next, callback, playFileWithFolder) {
 
   let even;
   if (mediaInfo)
@@ -711,13 +712,13 @@ function backupPresetBeforeNext (player, client, mediaInfo, playfile, client_bac
             "muted": muted,
             "UDN": player.UDN
           });
-          next(player, client, playfile, end, callback);
+          next(player, client, playfile, end, callback, playFileWithFolder);
         });
       })
   } else {
     player.device.setMuted(false)
     .then(() => {
-      next(player, client, playfile, end, callback);
+      next(player, client, playfile, end, callback, playFileWithFolder);
     });
   }
 
@@ -729,33 +730,52 @@ exports.unresize = function(callback) {
 }
 
 
-function play(player, client, playfile, end, callback) {
+function play(player, client, playfile, end, callback, playFileWithFolder) {
 
       let options = {
           uri: 'x-file-cifs:'+playfile,
           onlyWhenPlaying: false, // It will query the state anyway, don't play the notification if the speaker is currently off.
           volume: ((Config.modules.SonosPlayer.speech.volume[client]) ? Config.modules.SonosPlayer.speech.volume[client] : Config.modules.SonosPlayer.speech.default_volume) // Change the volume for the notification, and revert back afterwards.
       };
-
-      player.device.setAVTransportURI(options).then(state => {
-        player.device.setVolume(options.volume).then(() => {
-          var listen = (state) => {
-            if (state == 'stopped') {
-                if (end == true)
-                  transportClosure(client, function() {
+      player.device.setAVTransportURI(options)
+      .then(state => player.device.setVolume(options.volume))
+      .then(() => {
+          speakDuration (client, playfile, (duration) => {
+            if (!duration) {
+  						duration = Config.modules.SonosPlayer.speech.default_duration * 1000;
+  						warn('Set default speak duration:', (duration.toString() + 's'));
+  					}
+            setTimeout(() => {
+                if (end) {
+                  transportClosure(client, () => {
                       if (callback) callback();
                   });
-                else if (callback) callback();
-                player.device.removeListener('PlayState', listen)
-            }
-          }
-          player.device.on('PlayState', listen);
-        })
+                } else if (callback) {
+                  callback();
+                }
+            }, parseInt((((duration * Config.modules.SonosPlayer.speech.add_duration) / 100) + duration ) * 1000));
+          }, playFileWithFolder)
+          /*player.device.removeAllListeners('PlayState');
+          player.device.on('PlayState', playState => {
+              console.log('The state changed to %s.', playState)
+              if (playState == 'stopped') {
+                  console.log('play 3')
+                  player.device.removeAllListeners('PlayState');
+                  if (end == true) {
+                      transportClosure(client, () => {
+                          if (callback) callback();
+                      });
+                    } else if (callback) {
+                      console.log('play 4')
+                      callback();
+                    }
+              }
+          })*/
       })
       .catch(err => {
         error((err) ? "Sonos Play: " + err : "Impossible de lire le fichier");
         if (end == true)
-            transportClosure(client, function() {
+            transportClosure(client, () => {
                 if (callback) callback();
             });
         else if (callback) callback();
@@ -3305,7 +3325,6 @@ function searchRadio (data, client, player, answered, type) {
 }
 
 
-
 function searchMusic (data, client, player, answered, type) {
 
     getMusicLibrary(player.device, answered)
@@ -3631,15 +3650,92 @@ function ttsToWav (client, tts, callback) {
   const SimpleTTS = require("simpletts");
   const TTS = new SimpleTTS();
   TTS.ttswav(options)
-  .then(() => {
-    if (fs.existsSync(file))
-      callback(true);
-    else
-      callback();
+  .then(data => {
+    return (fs.existsSync(file)) ? callback(true): callback();
   })
   .catch((err) => {
     error('tts to wav error: ' + err);
     callback();
   });
 
+}
+
+
+function speakDuration (client, filename, callback, playFileWithFolder) {
+
+  let exec = require('child_process').exec;
+  if (client.indexOf(' ') != -1) client = client.replace(/ /g,"_");
+  let webroot = path.resolve(__dirname);
+
+  if (!filename.endsWith('speech.wav')) {
+      filename = playFileWithFolder ? playFileWithFolder : filename;
+      let filepath = filename.substring(0,filename.length - 4) + '.wav';
+      let fileTest = filepath.substring(0, filepath.lastIndexOf('/') + 1)+"test.wav";
+
+  		let cmd = webroot + '/sox/sox-14-4-2/sox -q "' + filename + '" "' + filepath + '"';
+  		let child = exec(cmd, function (err, stdout, stderr) {
+  		    if (err)
+  				    error('Sox error:', err || 'Unable to start Sox');
+  		});
+
+		  if (child) {
+			     child.stdout.on("close", function() {
+             setTimeout(function(){
+                fs.removeSync(fileTest);
+                let cmd = webroot + '/sox/sox -q "' + filepath + '" "' + fileTest + '" stat -−json';
+                let child = exec(cmd, function (err, stdout, stderr) {
+                  if (err)
+                  	error('Sox error:', err || 'Unable to start Sox');
+                  });
+
+					      if (child) {
+                  child.stdout.on("close", function() {
+                    fs.removeSync(fileTest);
+							      setTimeout(function(){
+      								try {
+      									let json = fs.readFileSync(webroot + '/../../../../state.json','utf8');
+      									let stats = JSON.parse(json);
+      									callback(stats.Length_seconds);
+      								} catch(ex){
+      									error("error: " + ex.message);
+      									callback();
+      								}
+							      }, 200);
+						      });
+                } else {
+                  callback();
+                }
+				    }, 200);
+			   });
+		  } else {
+        callback();
+      }
+	} else {
+    filename = filename.replace('//'+Config.modules.SonosPlayer.speech.ttsPartage, webroot)
+    let fileTest = path.resolve(webroot, 'tts/speech/' + client, 'test.wav');
+  	let cmd = webroot + '/sox/sox -q "'+filename+'" "'+fileTest+'" stat -−json';
+    fs.removeSync(fileTest);
+  	let child = exec(cmd, function (err, stdout, stderr) {
+  		if (err)
+  			error('Sox error:', err || 'Unable to start Sox');
+  	});
+
+  	if (child) {
+  		child.stdout.on("close", function() {
+        fs.removeSync(fileTest);
+  			setTimeout(function(){
+  				try {
+  					let json = fs.readFileSync(webroot + '/../../../../state.json','utf8');
+						let stats = JSON.parse(json);
+						callback(stats.Length_seconds);
+  				} catch(ex){
+  					error("error: " + ex.message);
+  					callback();
+  				}
+  			}, 200);
+  		});
+    } else {
+      callback();
+    }
+  }
 }

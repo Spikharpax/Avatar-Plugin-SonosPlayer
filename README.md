@@ -13,9 +13,8 @@
 	* Permet d'avoir un client mappé avec sa propre enceinte Sonos
 	* Client mobile Android pouvant transférer ses dialogues vers l'enceinte Sonos de la pièce courante
 * Entièrement multi-rooms, incluant les clients mappés
-* Gestion du son déporté de la télévision (PlayBar)
 * Coupure et remise automatique du son lors d'un dialogue avec gestion du mode _loop_ inclus
-* Gestion de vos bibilothèques musicales Sonos par sélection vocale directe ou recherche et sélection par dialogue
+* Gestion de vos bibilothèques musicales Sonos par sélection directe ou recherche et sélection par dialogue des:
 	* Listes de lecture importées
 	* Favoris
 	* Compositeurs
@@ -25,13 +24,13 @@
 	* Genres
 	* Pistes
 * Gestion de vos bibilothèques musicales Spotify (Compte Premium requis) 
-	* Sélection vocale directe ou recherche et sélection par dialogue de
+	* Sélection directe ou recherche et sélection par dialogue des:
 		* Albums
 		* Listes de lecture
 	* Recherche de musique Spotify par titre, titre et artiste, genre, artiste
 	* Commande vocale d'ajout de l'album en cours dans vos albums Spotify
-* Gestion de vos radios préférées par sélection vocale directe ou recherche et sélection par dialogue
-* Commandes vocales:
+* Gestion de vos radios préférées par sélection directe ou recherche et sélection par dialogue
+* Commandes vocales supplémentaires:
 	* Informations sur l'écoute en cours
 	* Démarrer/stopper la musique
 	* Volume (légèrement et fort)
@@ -39,7 +38,9 @@
 	* Musique suivante/précédente
 	* Transfert de la source télévision sur la playBar
 * Réveil et programmation (nécessite le plug-in [scenariz](https://github.com/Spikharpax/Avatar-Plugin-scenariz))
-* Fenêtre de saisie avec liste de sélection des genres (Spotify)
+* Fenêtre de saisie
+	* Permet de saisir et de mémoriser un artiste, album, favori... si le dialogue n'est pas reconnu et/ou de saisir ce qu'A.V.A.T.A.R doit retourner comme phrase de validation.
+	* Liste déroulante des genres de musiques Spotify pour une sélection directe.
 
 <p align="left"><img src="assets/image/sonos_node.png" width="70%" height="70%"/></p>
 
@@ -62,6 +63,8 @@
 
 ***
 ## ★ Historique
+* Version 2.2 (15-01-2021): 
+	* Suppression du Listener 'PlayState' et remplacement par Sox pour la recherche de la durée des wav
 * Version 2.1 (07-12-2020): 
 	* Correction dans la recherche de musique
 	* mise à jour des règles
