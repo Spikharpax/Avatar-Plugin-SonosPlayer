@@ -163,6 +163,17 @@ span.rvts30
 }
 span.rvts31
 {
+ font-size: 12pt;
+ font-style: italic;
+ font-weight: bold;
+}
+span.rvts32
+{
+ font-size: 12pt;
+ font-style: italic;
+}
+span.rvts33
+{
  font-size: 11pt;
  font-weight: bold;
 }
@@ -239,20 +250,28 @@ p,ul,ol /* Paragraph Style */
 }
 .rvps12
 {
- text-indent: 48px;
- margin: 0px 0px 0px 48px;
+ text-align: left;
+ text-indent: 0px;
+ page-break-after: avoid;
+ padding: 0px 0px 0px 0px;
+ margin: 16px 0px 4px 0px;
 }
 .rvps13
 {
  text-indent: 48px;
- margin: 0px 0px 0px 24px;
+ margin: 0px 0px 0px 48px;
 }
 .rvps14
 {
  text-indent: 48px;
- margin: 0px 0px 0px 72px;
+ margin: 0px 0px 0px 24px;
 }
 .rvps15
+{
+ text-indent: 48px;
+ margin: 0px 0px 0px 72px;
+}
+.rvps16
 {
  text-align: left;
  text-indent: 0px;
@@ -260,7 +279,7 @@ p,ul,ol /* Paragraph Style */
  padding: 0px 0px 0px 0px;
  margin: 16px 0px 4px 0px;
 }
-.rvps16
+.rvps17
 {
  page-break-inside: avoid;
  widows: 2;
